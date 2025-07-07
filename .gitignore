@@ -1,0 +1,15 @@
+# Ignore data, outputs, logs, and MLflow runs
+/data/
+/outputs/
+/logs/
+/mlruns/
+
+# Ignore Python cache and environment files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+.ipynb_checkpoints/
+.DS_Store

@@ -1,0 +1,11 @@
+# For pip users (optional)
+numpy
+pillow
+matplotlib
+scikit-image
+scikit-learn
+tqdm
+torch
+torchvision
+transformers
+evaluate

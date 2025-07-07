@@ -1,0 +1,18 @@
+name: MUSH
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.10
+  - numpy
+  - pillow
+  - matplotlib
+  - scikit-image
+  - scikit-learn
+  - tqdm
+  - pytorch
+  - torchvision
+  - pip
+  - pip:
+      - transformers
+      - evaluate

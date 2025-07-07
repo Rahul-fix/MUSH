@@ -1,0 +1,36 @@
+
+* semantic
+:PROPERTIES:
+:org-remark-file: semantic.py
+:END:
+
+**         # The JSON file stores paths like "/datasets/...", so remove the prefix
+:PROPERTIES:
+:org-remark-id: 74fe9338
+:org-remark-label: nil
+:org-remark-beg: 4748
+:org-remark-end: 4828
+:org-remark-link: [[file:semantic.py::135]]
+:org-remark-original-text: # The JSON file stores paths like "/datasets/...", so remove the prefix
+:END:
+Directory for dataset
+
+** TODO Change path to json and dataset
+:PROPERTIES:
+:org-remark-id: 94a93211
+:org-remark-label: nil
+:org-remark-beg: 13805
+:org-remark-end: 13809
+:org-remark-link: [[file:semantic.py::353]]
+:org-remark-original-text: file
+:END:
+
+** TODO coco_file_path   = "/data2/datasets/aid4crops_sweet/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json"
+:PROPERTIES:
+:org-remark-id: cf96940d
+:org-remark-label: nil
+:org-remark-beg: 13800
+:org-remark-end: 13916
+:org-remark-link: [[file:semantic.py::353]]
+:org-remark-original-text: coco_file_path   = "/data2/datasets/aid4crops_sweet/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json"
+:END:
