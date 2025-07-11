@@ -10,7 +10,7 @@
 :org-remark-label: nil
 :org-remark-beg: 4748
 :org-remark-end: 4828
-:org-remark-link: [[file:semantic.py::135]]
+:org-remark-link: [[file:dataloader_semantic.py::135]]
 :org-remark-original-text: # The JSON file stores paths like "/datasets/...", so remove the prefix
 :END:
 Directory for dataset
@@ -21,7 +21,7 @@ Directory for dataset
 :org-remark-label: nil
 :org-remark-beg: 13805
 :org-remark-end: 13809
-:org-remark-link: [[file:semantic.py::353]]
+:org-remark-link: [[file:dataloader_semantic.py::353]]
 :org-remark-original-text: file
 :END:
 
@@ -31,6 +31,11 @@ Directory for dataset
 :org-remark-label: nil
 :org-remark-beg: 13800
 :org-remark-end: 13916
-:org-remark-link: [[file:semantic.py::353]]
+:org-remark-link: [[file:dataloader_semantic.py::353]]
 :org-remark-original-text: coco_file_path   = "/data2/datasets/aid4crops_sweet/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json"
+:END:
+
+* dataloader_semantic
+:PROPERTIES:
+:org-remark-file: dataloader_semantic.py
 :END:

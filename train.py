@@ -1,5 +1,6 @@
 import os
 import torch
+from datetime import datetime
 from torch.utils.data import DataLoader
 from src.data.coco_dataset import COCODataset, ImageSegmentationDataset
 from src.data.transforms import train_transform, test_transform
@@ -7,12 +8,26 @@ from src.models.mask2former import get_mask2former_model, get_preprocessor
 from src.training.loop import train
 from src.utils.palette import id2label_remapped, label2id
 
-# Set device
+# GPU AVAILABILITY
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
+print(torch.cuda.current_device())
+print(torch.cuda.get_device_name())
 
-# Paths to your dataset
-coco_file_path = os.path.expanduser("~/Downloads/Thesis/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
-dataset_root_dir = os.path.expanduser("~/Downloads/Thesis")
+# TIME CHECK 
+current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+print("Start Time:", current_time)
+
+# adding a print statement to check if the script is running
+print("Training script is running...")
+print("*********************************")
+
+# # Paths to dataset (macos)
+# coco_file_path = os.path.expanduser("~//Thesis/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
+# dataset_root_dir = os.path.expanduser("~/Downloads/Thesis")
+# Paths to dataset (linux)
+coco_file_path = os.path.expanduser("/scratch/s7rakuma/datasets/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
+dataset_root_dir = os.path.expanduser("/scratch/s7rakuma/datasets")
 
 # Instantiate base datasets
 base_train_ds = COCODataset(coco_file=coco_file_path, root_dir=dataset_root_dir, split='train', transform=None)
@@ -50,3 +65,7 @@ train(
     device,
     epochs=100
 )
+
+# TIME CHECK ###
+current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+print("End Time:", current_time)
