@@ -4,9 +4,13 @@ import evaluate
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
-def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, epochs=100):
+def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, epochs=100, learning_rate=2e-4, optimizer_name="SGD", weight_decay=0.0):
+    import wandb
     metric = evaluate.load("mean_iou")
-    optimizer = optim.SGD(model.parameters(), lr=2e-4)
+    if optimizer_name == "AdamW":
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    else:
+        optimizer = optim.SGD(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=5e-6)
     best_val_loss = float('inf')
     best_epoch = 0
@@ -36,6 +40,7 @@ def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, 
                 print("Loss:", running_loss/num_samples)
             optimizer.step()
             # scheduler.step(epoch)
+            wandb.log({"train_loss": loss.item(), "epoch": epoch})
 
         model.eval()
         val_loss = 0.0
@@ -49,9 +54,11 @@ def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, 
                 )
                 valid_loss = outputs.loss
             val_loss += valid_loss.item()
-        print("Mean IoU:", metric.compute(num_labels = len(id2label_remapped ), ignore_index=0)['mean_iou'])
+        mean_iou = metric.compute(num_labels = len(id2label_remapped ), ignore_index=0)['mean_iou']
+        print("Mean IoU:", mean_iou)
         avg_val_loss = val_loss / len(valid_dataloader)
         print("Validation Loss:", avg_val_loss)
+        wandb.log({"val_loss": avg_val_loss, "mean_iou": mean_iou, "epoch": epoch})
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             best_epoch = epoch

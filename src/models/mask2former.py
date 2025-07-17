@@ -1,9 +1,9 @@
 from transformers import Mask2FormerForUniversalSegmentation, Mask2FormerImageProcessor
 import torch
 
-def get_mask2former_model(num_labels, device):
+def get_mask2former_model(num_labels, device, backbone="facebook/mask2former-swin-large-ade-semantic"):
     model = Mask2FormerForUniversalSegmentation.from_pretrained(
-        "facebook/mask2former-swin-large-ade-semantic",
+        backbone,
         num_labels=num_labels,
         ignore_mismatched_sizes=True
     )

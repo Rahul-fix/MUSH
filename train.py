@@ -7,6 +7,7 @@ from src.data.transforms import train_transform, test_transform
 from src.models.mask2former import get_mask2former_model, get_preprocessor
 from src.training.loop import train
 from src.utils.palette import id2label_remapped, label2id
+import wandb
 
 # GPU AVAILABILITY
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,7 +38,21 @@ base_val_ds   = COCODataset(coco_file=coco_file_path, root_dir=dataset_root_dir,
 train_dataset = ImageSegmentationDataset(base_train_ds, transform=train_transform, target_transform=None, label2id=label2id)
 valid_dataset = ImageSegmentationDataset(base_val_ds,   transform=train_transform, target_transform=None, label2id=label2id)
 
-# DataLoaders
+# Initialize WandB
+wandb.init(
+    project="mask2former-segmentation",
+    config={
+        "learning_rate": 1e-4,
+        "optimizer": "AdamW",
+        "weight_decay": 0.01,
+        "batch_size": 2,
+        "epochs": 100,
+        "backbone": "swin-t",
+    }
+)
+config = wandb.config
+
+# DataLoaders (use config values)
 def segmentation_collate_fn(batch):
     images, masks, orig_images, orig_masks = zip(*batch)
     preprocessor = get_preprocessor(len(id2label_remapped))
@@ -50,21 +65,27 @@ def segmentation_collate_fn(batch):
     processed["original_segmentation_maps"] = orig_masks
     return processed
 
-train_dataloader = DataLoader(train_dataset, batch_size=2, shuffle=True, collate_fn=segmentation_collate_fn)
-valid_dataloader = DataLoader(valid_dataset, batch_size=2, shuffle=False, collate_fn=segmentation_collate_fn)
+train_dataloader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, collate_fn=segmentation_collate_fn)
+valid_dataloader = DataLoader(valid_dataset, batch_size=config.batch_size, shuffle=False, collate_fn=segmentation_collate_fn)
 
-# Model and preprocessor
-model = get_mask2former_model(num_labels=len(id2label_remapped), device=device)
+# Model and preprocessor (example: pass backbone if supported)
+model = get_mask2former_model(num_labels=len(id2label_remapped), device=device, backbone=config.backbone)
 
-# Train
+# Train (pass config values if needed)
 train(
     model,
     train_dataloader,
     valid_dataloader,
     id2label_remapped,
     device,
-    epochs=100
+    epochs=config.epochs,
+    learning_rate=config.learning_rate,
+    optimizer=config.optimizer,
+    weight_decay=config.weight_decay
 )
+
+# Log metrics to WandB (add inside your train loop as well)
+# Example: wandb.log({"train_loss": train_loss, "val_loss": val_loss, ...})
 
 # TIME CHECK ###
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

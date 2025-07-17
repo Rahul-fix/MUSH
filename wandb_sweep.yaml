@@ -1,0 +1,19 @@
+# WandB sweep configuration for Mask2Former segmentation
+
+method: bayes
+metric:
+  name: val_loss
+  goal: minimize
+parameters:
+  learning_rate:
+    values: [1e-4, 5e-5, 1e-5]
+  optimizer:
+    values: ["AdamW", "SGD"]
+  weight_decay:
+    values: [0.01, 0.001, 0.0]
+  batch_size:
+    values: [2, 4]
+  epochs:
+    value: 100
+  backbone:
+    values: ["facebook/mask2former-swin-large-ade-semantic", "facebook/mask2former-swin-base-ade-semantic"]
