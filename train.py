@@ -3,7 +3,7 @@ import torch
 from datetime import datetime
 from torch.utils.data import DataLoader
 from src.data.coco_dataset import COCODataset, ImageSegmentationDataset
-from src.data.transforms import train_transform, test_transform
+from src.data.transforms import train_transform, test_transform, target_transform
 from src.models.mask2former import get_mask2former_model, get_preprocessor
 from src.training.loop import train
 from src.utils.palette import id2label_remapped, label2id
@@ -26,16 +26,16 @@ print("*********************************")
 # coco_file_path = os.path.expanduser("~//Thesis/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
 # dataset_root_dir = os.path.expanduser("~/Downloads/Thesis")
 # Paths to dataset (linux)
-coco_file_path = os.path.expanduser("/scratch/s7rakuma/datasets/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
-dataset_root_dir = os.path.expanduser("/scratch/s7rakuma/datasets")
+coco_file_path = os.path.expanduser("/home/rkumar/Downloads/Thesis/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
+dataset_root_dir = os.path.expanduser("/home/rkumar/Downloads/Thesis")
 
 # Instantiate base datasets
 base_train_ds = COCODataset(coco_file=coco_file_path, root_dir=dataset_root_dir, split='train', transform=None)
 base_val_ds   = COCODataset(coco_file=coco_file_path, root_dir=dataset_root_dir, split='valid', transform=None)
 
 # Wrapped datasets
-train_dataset = ImageSegmentationDataset(base_train_ds, transform=train_transform, target_transform=None, label2id=label2id)
-valid_dataset = ImageSegmentationDataset(base_val_ds,   transform=train_transform, target_transform=None, label2id=label2id)
+train_dataset = ImageSegmentationDataset(base_train_ds, transform=train_transform, target_transform=target_transform, label2id=label2id)
+valid_dataset = ImageSegmentationDataset(base_val_ds,   transform=train_transform, target_transform=target_transform, label2id=label2id)
 
 # DataLoaders
 def segmentation_collate_fn(batch):
@@ -50,8 +50,8 @@ def segmentation_collate_fn(batch):
     processed["original_segmentation_maps"] = orig_masks
     return processed
 
-train_dataloader = DataLoader(train_dataset, batch_size=2, shuffle=True, collate_fn=segmentation_collate_fn)
-valid_dataloader = DataLoader(valid_dataset, batch_size=2, shuffle=False, collate_fn=segmentation_collate_fn)
+train_dataloader = DataLoader(train_dataset, batch_size=3, shuffle=True, collate_fn=segmentation_collate_fn, num_workers=0)
+valid_dataloader = DataLoader(valid_dataset, batch_size=3, shuffle=False, collate_fn=segmentation_collate_fn, num_workers=0)
 
 # Model and preprocessor
 model = get_mask2former_model(num_labels=len(id2label_remapped), device=device)
