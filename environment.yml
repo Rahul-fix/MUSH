@@ -5,16 +5,16 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - numpy
+  - numpy<2.0         # Pin NumPy to a version before the breaking 2.x changes
   - pillow
   - matplotlib
   - scikit-image
   - scikit-learn
   - tqdm
-  - cudatoolkit=11.6
-  - pytorch
-  - torchvision
   - pip
   - pip:
-      - transformers
+      - torch==1.13.1+cu116  # Install PyTorch with CUDA 11.6 via pip
+      - torchvision==0.14.1+cu116
+      - transformers==4.36.2  # Updated for MaskFormer/Mask2Former support
       - evaluate
+      - --extra-index-url https://download.pytorch.org/whl/cu116
