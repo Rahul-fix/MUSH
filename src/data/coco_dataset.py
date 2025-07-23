@@ -102,7 +102,9 @@ class ImageSegmentationDataset(Dataset):
         else:
             image_tensor = torch.tensor(np.array(orig_pil_image), dtype=torch.float32).permute(2, 0, 1)
         if self.target_transform:
-            mask_transformed = self.target_transform(Image.fromarray(remapped_mask.numpy()))
+            # Ensure mask is uint8 before converting to PIL Image
+            mask_uint8 = remapped_mask.numpy().astype(np.uint8)
+            mask_transformed = self.target_transform(Image.fromarray(mask_uint8))
             mask_tensor = torch.tensor(np.array(mask_transformed), dtype=torch.int64)
         else:
             mask_tensor = remapped_mask
