@@ -23,11 +23,11 @@ print("Training script is running...")
 print("*********************************")
 
 # # Paths to dataset (macos)
-# coco_file_path = os.path.expanduser("~//Thesis/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
-# dataset_root_dir = os.path.expanduser("~/Downloads/Thesis")
+coco_file_path = os.path.expanduser("/scratch/s7rakuma/datasets/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
+dataset_root_dir = os.path.expanduser("/scratch/s7rakuma/datasets/")
 # Paths to dataset (linux)
-coco_file_path = os.path.expanduser("/home/rkumar/Downloads/Thesis/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
-dataset_root_dir = os.path.expanduser("/home/rkumar/Downloads/Thesis")
+# coco_file_path = os.path.expanduser("/home/rkumar/Downloads/Thesis/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
+# dataset_root_dir = os.path.expanduser("/home/rkumar/Downloads/Thesis")
 
 # Instantiate base datasets
 base_train_ds = COCODataset(coco_file=coco_file_path, root_dir=dataset_root_dir, split='train', transform=None)

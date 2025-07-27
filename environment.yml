@@ -6,10 +6,13 @@ channels:
 dependencies:
   - python=3.10
   - numpy<2.0         # Pin NumPy to a version before the breaking 2.x changes
+  - libstdcxx-ng>=12  # Key addition for GLIBCXX compatibility
+  - scipy>=1.9.0
   - pillow
   - matplotlib
   - scikit-image
   - scikit-learn
+  - wandb
   - tqdm
   - pip
   - pip:
@@ -17,4 +20,5 @@ dependencies:
       - torchvision==0.14.1+cu116
       - transformers==4.36.2  # Updated for MaskFormer/Mask2Former support
       - evaluate
+      - accelerate
       - --extra-index-url https://download.pytorch.org/whl/cu116
