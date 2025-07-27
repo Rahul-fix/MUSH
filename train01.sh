@@ -1,4 +1,4 @@
-#block(name=MUSH-mask2former, threads=2, memory=25000, subtasks=1, gpus=2, hours=3)
+#block(name=MUSH-mask2former, threads=2, memory=25000, subtasks=1, gpus=1, hours=3)
 echo "==================== CLUSTER JOB ENVIRONMENT SUMMARY ===================="
 echo "Job start time: $(date)"
 echo "Host: $(hostname)"

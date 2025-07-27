@@ -1,0 +1,82 @@
+---------------- start ----------------
+Sun Jul 27 2025 22:27:14
+max threads: 2
+max memory: 25000 MB
+time limit: 3 hours
+gpu id(s): 0,1
+---------------------------------------
+==================== CLUSTER JOB ENVIRONMENT SUMMARY ====================
+Job start time: Sun 27 Jul 2025 10:27:14 PM CEST
+Host: cubesat.itg.uni-bonn.de
+User: s7rakuma
+Working directory: /scratch/s7rakuma/MUSH
+CUDA_VISIBLE_DEVICES at job start: 0,1
+
+--- GPU SUMMARY (nvidia-smi, memory, processes) ---
+0, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11161 MiB, 0 %
+1, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+2, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+3, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+GPU 0: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-2c316412-cd6e-6e0e-9eb3-4bd02f195fe2)
+GPU 1: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-a465c1c3-176e-cca3-c9b6-78659b3bfeaa)
+GPU 2: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-b023753d-cb5b-d781-69e9-c3b301bcd101)
+GPU 3: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-51595939-a8fc-131c-1633-a4ce99223787)
+
+--- ENVIRONMENT SUMMARY ---
+Conda env: MUSH
+Python executable: /home/s7rakuma/miniconda3/envs/MUSH/bin/python3
+LD_LIBRARY_PATH: 
+PATH: /home/s7rakuma/miniconda3/envs/MUSH/bin:/home/s7rakuma/miniconda3/condabin:/queue:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/cuda/bin:/usr/local/cuda/bin
+Python: 3.10.18 | packaged by conda-forge | (main, Jun  4 2025, 14:45:41) [GCC 13.3.0]
+CUDA_VISIBLE_DEVICES: 0,1
+numpy                        1.26.4           py310hb13e2d6_0       conda-forge
+scipy                        1.15.2           py310h1d65ade_0       conda-forge
+torch                        1.13.1+cu116     pypi_0                pypi
+torchvision                  0.14.1+cu116     pypi_0                pypi
+transformers                 4.36.2           pypi_0                pypi
+=======================================================================
+/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/huggingface_hub/file_download.py:943: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Some weights of Mask2FormerForUniversalSegmentation were not initialized from the model checkpoint at facebook/mask2former-swin-large-ade-semantic and are newly initialized because the shapes did not match:
+- class_predictor.bias: found shape torch.Size([151]) in the checkpoint and torch.Size([9]) in the model instantiated
+- class_predictor.weight: found shape torch.Size([151, 256]) in the checkpoint and torch.Size([9, 256]) in the model instantiated
+- criterion.empty_weight: found shape torch.Size([151]) in the checkpoint and torch.Size([9]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Traceback (most recent call last):
+  File "/scratch/s7rakuma/MUSH/test_mask2former_minimal.py", line 33, in <module>
+    outputs = model(**inputs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 2479, in forward
+    outputs = self.model(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 2250, in forward
+    pixel_level_module_output = self.pixel_level_module(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 1380, in forward
+    backbone_features = self.encoder(pixel_values).feature_maps
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/swin/modeling_swin.py", line 1313, in forward
+    embedding_output, input_dimensions = self.embeddings(pixel_values)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/swin/modeling_swin.py", line 263, in forward
+    embeddings, output_dimensions = self.patch_embeddings(pixel_values)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/swin/modeling_swin.py", line 320, in forward
+    embeddings = self.projection(pixel_values)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/conv.py", line 463, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/conv.py", line 459, in _conv_forward
+    return F.conv2d(input, weight, bias, self.stride,
+RuntimeError: Input type (unsigned char) and bias type (float) should be the same
+----------------- end -----------------
+Sun Jul 27 2025 22:27:29
+elapsed time: 000:00:14
+---------------------------------------
