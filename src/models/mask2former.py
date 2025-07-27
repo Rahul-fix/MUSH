@@ -3,7 +3,7 @@ import torch
 
 def get_mask2former_model(num_labels, device):
     model = Mask2FormerForUniversalSegmentation.from_pretrained(
-        "facebook/mask2former-swin-tiny-ade-semantic",
+        "facebook/mask2former-swin-large-ade-semantic",
         num_labels=num_labels,
         ignore_mismatched_sizes=True
     )

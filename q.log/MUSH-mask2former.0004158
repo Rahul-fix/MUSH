@@ -1,0 +1,56 @@
+---------------- start ----------------
+Mon Jul 28 2025 00:21:14
+max threads: 2
+max memory: 25000 MB
+time limit: 3 hours
+gpu id(s): 1
+---------------------------------------
+==================== CLUSTER JOB ENVIRONMENT SUMMARY ====================
+Job start time: Mon 28 Jul 2025 12:21:14 AM CEST
+Host: cubesat.itg.uni-bonn.de
+User: s7rakuma
+Working directory: /scratch/s7rakuma/MUSH
+CUDA_VISIBLE_DEVICES at job start: 1
+
+--- GPU SUMMARY (nvidia-smi, memory, processes) ---
+0, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11161 MiB, 0 %
+1, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+2, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+3, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+GPU 0: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-2c316412-cd6e-6e0e-9eb3-4bd02f195fe2)
+GPU 1: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-a465c1c3-176e-cca3-c9b6-78659b3bfeaa)
+GPU 2: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-b023753d-cb5b-d781-69e9-c3b301bcd101)
+GPU 3: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-51595939-a8fc-131c-1633-a4ce99223787)
+
+--- ENVIRONMENT SUMMARY ---
+Conda env: MUSH
+Python executable: /home/s7rakuma/miniconda3/envs/MUSH/bin/python3
+LD_LIBRARY_PATH: 
+PATH: /home/s7rakuma/miniconda3/envs/MUSH/bin:/home/s7rakuma/miniconda3/condabin:/queue:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/cuda/bin:/usr/local/cuda/bin
+Python: 3.10.18 | packaged by conda-forge | (main, Jun  4 2025, 14:45:41) [GCC 13.3.0]
+CUDA_VISIBLE_DEVICES: 1
+numpy                        1.26.4           py310hb13e2d6_0       conda-forge
+scipy                        1.15.2           py310h1d65ade_0       conda-forge
+torch                        1.13.1+cu116     pypi_0                pypi
+torchvision                  0.14.1+cu116     pypi_0                pypi
+transformers                 4.36.2           pypi_0                pypi
+=======================================================================
+/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/huggingface_hub/file_download.py:943: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Some weights of Mask2FormerForUniversalSegmentation were not initialized from the model checkpoint at facebook/mask2former-swin-large-ade-semantic and are newly initialized because the shapes did not match:
+- class_predictor.bias: found shape torch.Size([151]) in the checkpoint and torch.Size([9]) in the model instantiated
+- class_predictor.weight: found shape torch.Size([151, 256]) in the checkpoint and torch.Size([9, 256]) in the model instantiated
+- criterion.empty_weight: found shape torch.Size([151]) in the checkpoint and torch.Size([9]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Using device: cuda
+0
+NVIDIA GeForce GTX 1080 Ti
+Start Time: 2025-07-28 00:21:26
+Training script is running...
+*********************************
+Epoch: 0
+  0%|          | 0/62 [00:00<?, ?it/s]  2%|▏         | 1/62 [00:04<04:49,  4.75s/it]  3%|▎         | 2/62 [00:08<04:03,  4.06s/it]  5%|▍         | 3/62 [00:12<03:50,  3.91s/it]  6%|▋         | 4/62 [00:15<03:40,  3.81s/it]  8%|▊         | 5/62 [00:19<03:33,  3.75s/it] 10%|▉         | 6/62 [00:22<03:27,  3.71s/it] 11%|█▏        | 7/62 [00:26<03:22,  3.68s/it] 13%|█▎        | 8/62 [00:30<03:18,  3.67s/it] 15%|█▍        | 9/62 [00:33<03:15,  3.68s/it] 16%|█▌        | 10/62 [00:37<03:11,  3.69s/it] 18%|█▊        | 11/62 [00:41<03:07,  3.67s/it] 19%|█▉        | 12/62 [00:44<03:04,  3.68s/it] 21%|██        | 13/62 [00:48<02:59,  3.67s/it] 23%|██▎       | 14/62 [00:52<02:55,  3.65s/it] 24%|██▍       | 15/62 [00:55<02:51,  3.64s/it] 26%|██▌       | 16/62 [00:59<02:47,  3.65s/it] 27%|██▋       | 17/62 [01:03<02:44,  3.66s/it] 29%|██▉       | 18/62 [01:06<02:40,  3.65s/it] 31%|███       | 19/62 [01:10<02:38,  3.68s/it] 32%|███▏      | 20/62 [01:14<02:33,  3.67s/it] 34%|███▍      | 21/62 [01:17<02:30,  3.66s/it] 35%|███▌      | 22/62 [01:21<02:26,  3.66s/it] 37%|███▋      | 23/62 [01:25<02:22,  3.66s/it] 39%|███▊      | 24/62 [01:28<02:19,  3.67s/it] 40%|████      | 25/62 [01:32<02:15,  3.67s/it] 42%|████▏     | 26/62 [01:36<02:11,  3.67s/it] 44%|████▎     | 27/62 [01:39<02:08,  3.66s/it] 45%|████▌     | 28/62 [01:43<02:04,  3.67s/it] 47%|████▋     | 29/62 [01:47<02:02,  3.70s/it] 48%|████▊     | 30/62 [01:50<01:57,  3.68s/it] 50%|█████     | 31/62 [01:54<01:53,  3.67s/it] 52%|█████▏    | 32/62 [01:58<01:49,  3.66s/it] 53%|█████▎    | 33/62 [02:01<01:46,  3.69s/it] 55%|█████▍    | 34/62 [02:05<01:42,  3.68s/it] 56%|█████▋    | 35/62 [02:09<01:38,  3.66s/it] 58%|█████▊    | 36/62 [02:12<01:35,  3.68s/it] 60%|█████▉    | 37/62 [02:16<01:31,  3.68s/it] 61%|██████▏   | 38/62 [02:20<01:29,  3.72s/it] 63%|██████▎   | 39/62 [02:24<01:25,  3.70s/it] 65%|██████▍   | 40/62 [02:27<01:21,  3.70s/it] 66%|██████▌   | 41/62 [02:31<01:18,  3.74s/it] 68%|██████▊   | 42/62 [02:35<01:14,  3.72s/it] 69%|██████▉   | 43/62 [02:39<01:10,  3.72s/it] 71%|███████   | 44/62 [02:42<01:06,  3.71s/it] 73%|███████▎  | 45/62 [02:46<01:03,  3.71s/it] 74%|███████▍  | 46/62 [02:50<00:59,  3.70s/it] 76%|███████▌  | 47/62 [02:54<00:56,  3.75s/it] 77%|███████▋  | 48/62 [02:57<00:52,  3.75s/it] 79%|███████▉  | 49/62 [03:01<00:48,  3.72s/it] 81%|████████  | 50/62 [03:05<00:44,  3.71s/it] 82%|████████▏ | 51/62 [03:08<00:40,  3.72s/it] 84%|████████▍ | 52/62 [03:12<00:37,  3.72s/it] 85%|████████▌ | 53/62 [03:16<00:33,  3.71s/it] 87%|████████▋ | 54/62 [03:19<00:29,  3.70s/it] 89%|████████▊ | 55/62 [03:23<00:25,  3.71s/it] 90%|█████████ | 56/62 [03:27<00:22,  3.71s/it] 92%|█████████▏| 57/62 [03:31<00:18,  3.73s/it] 94%|█████████▎| 58/62 [03:34<00:14,  3.74s/it] 95%|█████████▌| 59/62 [03:38<00:11,  3.73s/it] 97%|█████████▋| 60/62 [03:42<00:07,  3.71s/it] 98%|█████████▊| 61/62 [03:46<00:03,  3.72s/it]100%|██████████| 62/62 [03:49<00:00,  3.74s/it]100%|██████████| 62/62 [03:49<00:00,  3.71s/it]
+Loss: 42.66026306152344
+  0%|          | 0/32 [00:00<?, ?it/s]/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/datasets/features/image.py:357: UserWarning: Downcasting array dtype int64 to int32 to be compatible with 'Pillow'
+  warnings.warn(f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'")
+  3%|▎         | 1/32 [00:01<00:37,  1.22s/it]  6%|▋         | 2/32 [00:02<00:32,  1.07s/it]  9%|▉         | 3/32 [00:03<00:30,  1.07s/it] 12%|█▎        | 4/32 [00:04<00:30,  1.10s/it] 16%|█▌        | 5/32 [00:05<00:29,  1.11s/it] 19%|█▉        | 6/32 [00:06<00:28,  1.10s/it] 22%|██▏       | 7/32 [00:07<00:27,  1.09s/it] 25%|██▌       | 8/32 [00:08<00:26,  1.11s/it] 28%|██▊       | 9/32 [00:09<00:24,  1.06s/it] 31%|███▏      | 10/32 [00:10<00:23,  1.05s/it] 34%|███▍      | 11/32 [00:11<00:21,  1.04s/it] 38%|███▊      | 12/32 [00:12<00:20,  1.04s/it] 41%|████      | 13/32 [00:13<00:19,  1.02s/it] 44%|████▍     | 14/32 [00:14<00:18,  1.04s/it] 47%|████▋     | 15/32 [00:15<00:17,  1.03s/it] 50%|█████     | 16/32 [00:16<00:16,  1.04s/it] 53%|█████▎    | 17/32 [00:17<00:15,  1.03s/it] 56%|█████▋    | 18/32 [00:19<00:14,  1.03s/it] 59%|█████▉    | 19/32 [00:20<00:13,  1.04s/it] 62%|██████▎   | 20/32 [00:21<00:12,  1.04s/it] 66%|██████▌   | 21/32 [00:22<00:11,  1.03s/it] 69%|██████▉   | 22/32 [00:23<00:10,  1.02s/it] 72%|███████▏  | 23/32 [00:24<00:09,  1.04s/it] 75%|███████▌  | 24/32 [00:25<00:08,  1.05s/it] 78%|███████▊  | 25/32 [00:26<00:07,  1.08s/it] 81%|████████▏ | 26/32 [00:27<00:06,  1.05s/it] 84%|████████▍ | 27/32 [00:28<00:05,  1.04s/it] 88%|████████▊ | 28/32 [00:29<00:04,  1.04s/it] 91%|█████████ | 29/32 [00:30<00:03,  1.04s/it] 94%|█████████▍| 30/32 [00:31<00:02,  1.03s/it] 97%|█████████▋| 31/32 [00:32<00:01,  1.04s/it]100%|██████████| 32/32 [00:33<00:00,  1.13it/s]100%|██████████| 32/32 [00:33<00:00,  1.03s/it]

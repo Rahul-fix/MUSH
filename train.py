@@ -50,8 +50,8 @@ def segmentation_collate_fn(batch):
     processed["original_segmentation_maps"] = orig_masks
     return processed
 
-train_dataloader = DataLoader(train_dataset, batch_size=3, shuffle=True, collate_fn=segmentation_collate_fn, num_workers=0)
-valid_dataloader = DataLoader(valid_dataset, batch_size=3, shuffle=False, collate_fn=segmentation_collate_fn, num_workers=0)
+train_dataloader = DataLoader(train_dataset, batch_size=2, shuffle=True, collate_fn=segmentation_collate_fn, num_workers=0)
+valid_dataloader = DataLoader(valid_dataset, batch_size=2, shuffle=False, collate_fn=segmentation_collate_fn, num_workers=0)
 
 # Model and preprocessor
 model = get_mask2former_model(num_labels=len(id2label_remapped), device=device)
@@ -63,7 +63,7 @@ train(
     valid_dataloader,
     id2label_remapped,
     device,
-    epochs=100
+    epochs=3
 )
 
 # TIME CHECK ###

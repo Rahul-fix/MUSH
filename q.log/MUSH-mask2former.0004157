@@ -1,0 +1,92 @@
+---------------- start ----------------
+Mon Jul 28 2025 00:20:05
+max threads: 2
+max memory: 25000 MB
+time limit: 3 hours
+gpu id(s): 0
+---------------------------------------
+==================== CLUSTER JOB ENVIRONMENT SUMMARY ====================
+Job start time: Mon 28 Jul 2025 12:20:05 AM CEST
+Host: cubesat.itg.uni-bonn.de
+User: s7rakuma
+Working directory: /scratch/s7rakuma/MUSH
+CUDA_VISIBLE_DEVICES at job start: 0
+
+--- GPU SUMMARY (nvidia-smi, memory, processes) ---
+0, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11161 MiB, 0 %
+1, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+2, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+3, NVIDIA GeForce GTX 1080 Ti, 11264 MiB, 11171 MiB, 0 %
+GPU 0: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-2c316412-cd6e-6e0e-9eb3-4bd02f195fe2)
+GPU 1: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-a465c1c3-176e-cca3-c9b6-78659b3bfeaa)
+GPU 2: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-b023753d-cb5b-d781-69e9-c3b301bcd101)
+GPU 3: NVIDIA GeForce GTX 1080 Ti (UUID: GPU-51595939-a8fc-131c-1633-a4ce99223787)
+
+--- ENVIRONMENT SUMMARY ---
+Conda env: MUSH
+Python executable: /home/s7rakuma/miniconda3/envs/MUSH/bin/python3
+LD_LIBRARY_PATH: 
+PATH: /home/s7rakuma/miniconda3/envs/MUSH/bin:/home/s7rakuma/miniconda3/condabin:/queue:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/cuda/bin:/usr/local/cuda/bin
+Python: 3.10.18 | packaged by conda-forge | (main, Jun  4 2025, 14:45:41) [GCC 13.3.0]
+CUDA_VISIBLE_DEVICES: 0
+numpy                        1.26.4           py310hb13e2d6_0       conda-forge
+scipy                        1.15.2           py310h1d65ade_0       conda-forge
+torch                        1.13.1+cu116     pypi_0                pypi
+torchvision                  0.14.1+cu116     pypi_0                pypi
+transformers                 4.36.2           pypi_0                pypi
+=======================================================================
+/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/huggingface_hub/file_download.py:943: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Some weights of Mask2FormerForUniversalSegmentation were not initialized from the model checkpoint at facebook/mask2former-swin-large-ade-semantic and are newly initialized because the shapes did not match:
+- class_predictor.bias: found shape torch.Size([151]) in the checkpoint and torch.Size([9]) in the model instantiated
+- class_predictor.weight: found shape torch.Size([151, 256]) in the checkpoint and torch.Size([9, 256]) in the model instantiated
+- criterion.empty_weight: found shape torch.Size([151]) in the checkpoint and torch.Size([9]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Using device: cuda
+0
+NVIDIA GeForce GTX 1080 Ti
+Start Time: 2025-07-28 00:20:23
+Training script is running...
+*********************************
+Epoch: 0
+  0%|          | 0/42 [00:00<?, ?it/s]  0%|          | 0/42 [00:01<?, ?it/s]
+Traceback (most recent call last):
+  File "/scratch/s7rakuma/MUSH/train.py", line 60, in <module>
+    train(
+  File "/scratch/s7rakuma/MUSH/src/training/loop.py", line 33, in train
+    outputs = model(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 2479, in forward
+    outputs = self.model(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 2250, in forward
+    pixel_level_module_output = self.pixel_level_module(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 1381, in forward
+    decoder_output = self.decoder(backbone_features, output_hidden_states=output_hidden_states)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 1305, in forward
+    encoder_outputs = self.encoder(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 1160, in forward
+    layer_outputs = encoder_layer(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 1015, in forward
+    hidden_states, attn_weights = self.self_attn(
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 959, in forward
+    output = multi_scale_deformable_attention(value, spatial_shapes, sampling_locations, attention_weights)
+  File "/home/s7rakuma/miniconda3/envs/MUSH/lib/python3.10/site-packages/transformers/models/mask2former/modeling_mask2former.py", line 824, in multi_scale_deformable_attention
+    (torch.stack(sampling_value_list, dim=-2).flatten(-2) * attention_weights)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 190.00 MiB (GPU 0; 10.92 GiB total capacity; 9.68 GiB already allocated; 126.25 MiB free; 10.01 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+----------------- end -----------------
+Mon Jul 28 2025 00:20:29
+elapsed time: 000:00:24
+---------------------------------------

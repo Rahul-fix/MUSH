@@ -1,4 +1,6 @@
-#block(name=MUSH-mask2former, threads=2, memory=25000, subtasks=1, gpus=1, hours=3)
+#!/bin/bash
+export N_SUBTASKS=1
+export SUBTASK_ID=1
 echo "==================== CLUSTER JOB ENVIRONMENT SUMMARY ===================="
 echo "Job start time: $(date)"
 echo "Host: $(hostname)"
