@@ -3,7 +3,10 @@ import torch
 
 def get_mask2former_model(num_labels, device):
     model = Mask2FormerForUniversalSegmentation.from_pretrained(
-        "facebook/mask2former-swin-tiny-ade-semantic",  # Swin-Tiny backbone for lowest memory
+        # "facebook/mask2former-swin-tiny-ade-semantic",  # Swin-Tiny backbone for lowest memory
+        # "facebook/mask2former-swin-large-ade-semantic",  # Swin-Large backbone for lowest memory
+        "facebook/mask2former-swin-base-ade-semantic",  # Swin-Base backbone for lowest memory
+        # "facebook/mask2former-swin-small-ade-semantic",  # Swin-Small backbone for lowest memory
         num_labels=num_labels,
         ignore_mismatched_sizes=True
     )

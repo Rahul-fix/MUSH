@@ -2,7 +2,9 @@
 source /home/s7rakuma/miniconda3/etc/profile.d/conda.sh
 conda activate MUSH
 export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
-# export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+# Add memory optimization settings
+export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+export CUDA_LAUNCH_BLOCKING=1
 
 # Launch distributed training with Accelerate
 accelerate launch --config_file accelerate_config.yaml train.py "$@"

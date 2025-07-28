@@ -66,7 +66,8 @@ model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelera
 
 # Optimizer
 import torch.optim as optim
-optimizer = optim.SGD(model.parameters(), lr=2e-4)
+# NEW - much more conservative for large model
+optimizer = optim.SGD(model.parameters(), lr=1e-5)  # or even 1e-5
 
 # Scheduler (create after optimizer)
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
