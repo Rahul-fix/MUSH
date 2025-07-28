@@ -6,8 +6,17 @@ from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from src.models.mask2former import get_preprocessor
 import numpy as np
 from src.utils.palette import remap_labels, label2id
+from src.utils.training_summary import log_training_summary
+
+# log summary of training parameters
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remapped, device, accelerator, epochs=2, scheduler=None):
+    log_training_summary(model, optimizer, train_dataloader, id2label_remapped, device, accelerator, epochs, scheduler)
+
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=5e-6)
     best_val_loss = float('inf')
     best_epoch = 0
