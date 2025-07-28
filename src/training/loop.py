@@ -15,16 +15,6 @@ def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, 
     running_loss = 0.0
     num_samples = 0
 
-    # Print unique values of remapped masks in the training set (first 5 batches)
-    # print("[INFO] Checking unique values in remapped training masks...")
-    # for idx, batch in enumerate(train_dataloader):
-    #     if idx >= 5:
-    #         break
-    #     mask_batch = batch["mask_labels"]
-    #     for i, mask in enumerate(mask_batch):
-    #         mask_np = mask.cpu().numpy() if hasattr(mask, 'cpu') else np.array(mask)
-    #         print(f"[TRAIN DEBUG] Batch {idx} mask {i} unique: {np.unique(mask_np)}")
-
     for epoch in range(epochs):
         print(f"Epoch: {epoch}")
         model.train()
