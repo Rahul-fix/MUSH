@@ -64,17 +64,30 @@ valid_dataloader = DataLoader(valid_dataset, batch_size=1, shuffle=False, collat
 # Model and preprocessor
 model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelerator.device)
 
-# Prepare for distributed training
-model, train_dataloader, valid_dataloader = accelerator.prepare(model, train_dataloader, valid_dataloader)
+# Optimizer
+import torch.optim as optim
+optimizer = optim.SGD(model.parameters(), lr=2e-4)
+
+# Scheduler (create after optimizer)
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
+scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=5e-6)
+
+# Prepare for distributed training (include optimizer and scheduler)
+model, optimizer, scheduler, train_dataloader, valid_dataloader = accelerator.prepare(
+    model, optimizer, scheduler, train_dataloader, valid_dataloader
+)
 
 # Train
 train(
     model,
+    optimizer,
     train_dataloader,
     valid_dataloader,
     id2label_remapped,
     accelerator.device,
-    epochs=3
+    accelerator,
+    epochs=3,
+    scheduler=scheduler  # pass scheduler to training loop
 )
 
 # TIME CHECK ###

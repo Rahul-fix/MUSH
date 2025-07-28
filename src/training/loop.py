@@ -7,8 +7,7 @@ from src.models.mask2former import get_preprocessor
 import numpy as np
 from src.utils.palette import remap_labels, label2id
 
-def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, epochs=2):
-    optimizer = optim.SGD(model.parameters(), lr=2e-4)
+def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remapped, device, accelerator, epochs=2, scheduler=None):
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=5e-6)
     best_val_loss = float('inf')
     best_epoch = 0
@@ -16,7 +15,7 @@ def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, 
     num_samples = 0
 
     for epoch in range(epochs):
-        print(f"Epoch: {epoch}")
+        accelerator.print(f"Epoch: {epoch}")
         model.train()
         for idx, batch in enumerate(tqdm(train_dataloader)):
             optimizer.zero_grad()
@@ -26,14 +25,15 @@ def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, 
                 class_labels=[c.to(device) for c in batch["class_labels"]],
             )
             loss = outputs.loss
-            loss.backward()
+            accelerator.backward(loss)
             batch_size = batch["pixel_values"].size(0)
             running_loss += loss.item()
             num_samples += batch_size
             if idx % 100 == 0:
-                print("Loss:", running_loss/num_samples)
+                accelerator.print("Loss:", running_loss/num_samples)
             optimizer.step()
-            # scheduler.step(epoch)
+            if scheduler is not None:
+                scheduler.step()
 
         model.eval()
         val_loss = 0.0
@@ -55,21 +55,19 @@ def train(model, train_dataloader, valid_dataloader, id2label_remapped, device, 
                 # Remap validation ground truth masks to contiguous IDs before metric
                 refs_np = [remap_labels(np.array(m), label2id).cpu().numpy() for m in pred_semantic_maps]
                 preds_np = [p.cpu().numpy() if hasattr(p, 'cpu') else np.array(p) for p in preds]
-                # print(f"[DEBUG] Batch {idx} preds shape: {[p.shape for p in preds_np]}, refs shape: {[r.shape for r in refs_np]}")
-                # print(f"[DEBUG] Batch {idx} preds unique: {[np.unique(p) for p in preds_np]}")
-                # print(f"[DEBUG] Batch {idx} refs unique: {[np.unique(r) for r in refs_np]}")
                 metric.add_batch(
                     references=refs_np,
                     predictions=preds_np
                 )
             val_loss += valid_loss.item()
         metric_result = metric.compute(num_labels=len(id2label_remapped), ignore_index=0)
-        print("Mean IoU:", metric_result["mean_iou"] if metric_result else None)
+        accelerator.print("Mean IoU:", metric_result["mean_iou"] if metric_result else None)
         avg_val_loss = val_loss / len(valid_dataloader)
-        print("Validation Loss:", avg_val_loss)
+        accelerator.print("Validation Loss:", avg_val_loss)
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             best_epoch = epoch
             model_save_path = f"Output/best_model_epoch_{best_epoch}.pt"
-            torch.save(model.state_dict(), model_save_path)
-            print(f"Model saved at epoch {best_epoch} with validation loss: {best_val_loss}")
+            if accelerator.is_main_process:
+                torch.save(model.state_dict(), model_save_path)
+                accelerator.print(f"Model saved at epoch {best_epoch} with validation loss: {best_val_loss}")
