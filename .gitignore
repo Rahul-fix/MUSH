@@ -21,3 +21,4 @@ Output/best_model_epoch_*.pt
 # Ignore distributed and training logs
 q.log/
 
+q.log/MUSH-mask2former.0004158
