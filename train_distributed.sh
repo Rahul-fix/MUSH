@@ -1,4 +1,4 @@
-#block(name=MUSH-mask2former-dist, threads=2, memory=85000, subtasks=1, gpus=3, hours=3)
+#block(name=MUSH-mask2former-dist, threads=2, memory=35000, subtasks=1, gpus=4, hours=3)
 source /home/s7rakuma/miniconda3/etc/profile.d/conda.sh
 conda activate MUSH
 export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
