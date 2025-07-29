@@ -58,8 +58,8 @@ def segmentation_collate_fn(batch):
         "original_segmentation_maps": list(orig_masks)  # <-- add this for evaluation/visualization
     }
 
-train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True, collate_fn=segmentation_collate_fn, num_workers=0)
-valid_dataloader = DataLoader(valid_dataset, batch_size=1, shuffle=False, collate_fn=segmentation_collate_fn, num_workers=0)
+train_dataloader = DataLoader(train_dataset, batch_size=3, shuffle=True, collate_fn=segmentation_collate_fn, num_workers=0)
+valid_dataloader = DataLoader(valid_dataset, batch_size=3, shuffle=False, collate_fn=segmentation_collate_fn, num_workers=0)
 
 # Model and preprocessor
 model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelerator.device)
@@ -67,7 +67,7 @@ model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelera
 # Optimizer
 import torch.optim as optim
 # NEW - much more conservative for large model
-optimizer = optim.SGD(model.parameters(), lr=1e-5)  # or even 1e-5
+optimizer = optim.SGD(model.parameters(), lr=2e-3)  # or even 1e-5
 
 # Scheduler (create after optimizer)
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
