@@ -34,12 +34,18 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
         for idx, batch in enumerate(tqdm(train_dataloader)):
             optimizer.zero_grad()
             outputs = model(
-                pixel_values=batch["pixel_values"].to(device),
-                mask_labels=[m.to(device) for m in batch["mask_labels"]],
-                class_labels=[c.to(device) for c in batch["class_labels"]],
+                pixel_values=batch["pixel_values"],
+                mask_labels=batch["mask_labels"],
+                class_labels=batch["class_labels"],
             )
             loss = outputs.loss
             accelerator.backward(loss)
+            # #  Gradient clipping to prevent numerical instability
+            # grad_norm = accelerator.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            # # Debug: Log when clipping happens
+            # if idx % 100 == 0:
+            #     accelerator.print(f"Gradient norm: {grad_norm:.6f}")
+
             batch_size = batch["pixel_values"].size(0)
             running_loss += loss.item()
             num_samples += batch_size
@@ -59,9 +65,9 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
         with torch.no_grad():
             for idx, batch in enumerate(tqdm(valid_dataloader)):
                 outputs = model(
-                    pixel_values=batch["pixel_values"].to(device),
-                    mask_labels=[m.to(device) for m in batch["mask_labels"]],
-                    class_labels=[c.to(device) for c in batch["class_labels"]],
+                    pixel_values=batch["pixel_values"],
+                    mask_labels=batch["mask_labels"],
+                    class_labels=batch["class_labels"],
                 )
                 # Collect validation loss
                 val_losses.append(outputs.loss.detach())
