@@ -18,6 +18,7 @@ changes.md
 # Ignore large model files
 best_model_epoch_*.pt
 Output/best_model_epoch_*.pt
+Output/*
 # Ignore distributed and training logs
 q.log/
 
