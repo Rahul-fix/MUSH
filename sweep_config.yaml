@@ -1,0 +1,18 @@
+program: train.py
+method: grid
+metric:
+  goal: maximize
+  name: best_mean_iou
+parameters:
+  cutmix_alpha:
+    values: [0.5, 1.0, 1.5, 2.0]
+  cutmix_prob:
+    values: [0.3, 0.5, 0.7]
+  learning_rate:
+    values: [2e-4]
+  batch_size:
+    values: [3]
+early_terminate:
+  type: hyperband
+  min_iter: 15
+  max_iter: 100
