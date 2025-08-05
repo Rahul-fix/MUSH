@@ -8,6 +8,8 @@ import numpy as np
 from src.utils.palette import remap_labels, label2id
 from src.utils.training_summary import log_training_summary
 from PIL import Image
+import wandb
+import time
 
 # log summary of training parameters
 try:
@@ -15,29 +17,47 @@ try:
 except ImportError:
     psutil = None
 
-def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remapped, device, accelerator, epochs=2, scheduler=None):
+def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remapped, device, accelerator, epochs=2, scheduler=None, log_freq=10):
     log_training_summary(model, optimizer, train_dataloader, id2label_remapped, device, accelerator, epochs, scheduler)
-
+    
     best_val_loss = float('inf')
+    best_mean_iou = 0.0
     best_epoch = 0
+    global_step = 0
+    
+    # Initialize metrics tracking
     running_loss = 0.0
     num_samples = 0
-
+    
     for epoch in range(epochs):
-        accelerator.print(f"Epoch: {epoch}")
+        epoch_start_time = time.time()
+        accelerator.print(f"Epoch: {epoch + 1}/{epochs}")
+        
         # Log learning rate at start of epoch
         if scheduler is not None:
             current_lr = optimizer.param_groups[0]['lr']
             accelerator.print(f"Current learning rate: {current_lr:.6f}")
+            
+            # Log to wandb (only main process)
+            if accelerator.is_main_process and wandb.run:
+                wandb.log({"learning_rate": current_lr, "epoch": epoch}, step=global_step)
+        
         # Training phase
         model.train()
-        for idx, batch in enumerate(tqdm(train_dataloader)):
+        epoch_loss = 0.0
+        epoch_samples = 0
+        train_step = 0
+        
+        for idx, batch in enumerate(tqdm(train_dataloader, desc=f"Training Epoch {epoch+1}")):
+            step_start_time = time.time()
             optimizer.zero_grad()
+            
             outputs = model(
                 pixel_values=batch["pixel_values"],
                 mask_labels=batch["mask_labels"],
                 class_labels=batch["class_labels"],
             )
+            
             loss = outputs.loss
             accelerator.backward(loss)
             # #  Gradient clipping to prevent numerical instability
@@ -49,11 +69,41 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
             batch_size = batch["pixel_values"].size(0)
             running_loss += loss.item()
             num_samples += batch_size
-            if idx % 100 == 0:
-                accelerator.print("Loss:", running_loss/num_samples)
-                if scheduler is not None:
-                    current_lr = optimizer.param_groups[0]['lr']
-                    accelerator.print(f"LR: {current_lr:.6f}")
+            epoch_loss += loss.item() * batch_size
+            epoch_samples += batch_size
+            train_step += 1
+            global_step += 1
+            
+            # Frequent logging
+            if idx % log_freq == 0:
+                avg_loss = running_loss / num_samples
+                step_time = time.time() - step_start_time
+                
+                accelerator.print(f"Step {idx}: Loss: {loss.item():.6f}, Avg Loss: {avg_loss:.6f}")
+                
+                # Log to wandb (only main process)
+                if accelerator.is_main_process and wandb.run:
+                    log_dict = {
+                        "train/loss_step": loss.item(),
+                        "train/loss_avg": avg_loss,
+                        "train/step_time": step_time,
+                        "train/samples_per_second": batch_size / step_time if step_time > 0 else 0,
+                        "global_step": global_step,
+                        "epoch": epoch
+                    }
+                    
+                    if scheduler is not None:
+                        log_dict["learning_rate"] = optimizer.param_groups[0]['lr']
+                    
+                    # Log memory usage if available
+                    if torch.cuda.is_available():
+                        log_dict.update({
+                            "system/gpu_memory_allocated_mb": torch.cuda.memory_allocated() / 1024 / 1024,
+                            "system/gpu_memory_reserved_mb": torch.cuda.memory_reserved() / 1024 / 1024,
+                        })
+                    
+                    wandb.log(log_dict, step=global_step)
+            
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()
@@ -122,12 +172,40 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
                         predictions=gathered_preds_list
                     )
                     metric_result = metric.compute(
-                        num_labels=len(id2label_remapped), 
+                        num_labels=len(id2label_remapped),
                         ignore_index=0,
                         reduce_labels=False
                     )
                     mean_iou = metric_result.get("mean_iou", 0.0)
+                    per_class_iou = metric_result.get("per_category_iou", [])
+                    
                     accelerator.print(f"Mean IoU: {mean_iou:.6f}")
+                    
+                    # Log comprehensive metrics to wandb
+                    if wandb.run:
+                        log_dict = {
+                            "epoch": epoch,
+                            "train/loss_epoch": epoch_avg_loss,
+                            "train/epoch_time": epoch_time,
+                            "val/loss": avg_val_loss,
+                            "val/mean_iou": mean_iou,
+                            "val/validation_time": val_time,
+                            "best_mean_iou": max(best_mean_iou, mean_iou),
+                            "global_step": global_step
+                        }
+                        
+                        # Log per-class IoU
+                        if len(per_class_iou) > 0:
+                            for class_idx, class_iou in enumerate(per_class_iou):
+                                if class_idx < len(id2label_remapped):
+                                    class_name = id2label_remapped[class_idx]
+                                    log_dict[f"val/iou_{class_name}"] = class_iou
+                        
+                        wandb.log(log_dict, step=global_step)
+                    
+                    # Update best metrics
+                    if mean_iou > best_mean_iou:
+                        best_mean_iou = mean_iou
                 except Exception as e:
                     accelerator.print(f"Metric computation error: {e}")
                     accelerator.print("Mean IoU: Could not compute")
@@ -136,12 +214,48 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
         # Memory management AFTER all validation processing is complete
         torch.cuda.empty_cache()
         accelerator.wait_for_everyone()
-        # REMOVED BROADCAST - since avg_val_loss is already the same across all processes
+        
         accelerator.print(f"Validation Loss: {avg_val_loss:.6f}")
+        
+        # Save best model
+        is_best = False
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             best_epoch = epoch
+            is_best = True
+            
             if accelerator.is_main_process:
+                # Save model locally
                 model_save_path = f"Output/best_model_epoch_{best_epoch}.pt"
                 torch.save(accelerator.unwrap_model(model).state_dict(), model_save_path)
                 accelerator.print(f"Model saved at epoch {best_epoch} with validation loss: {best_val_loss:.6f}")
+                
+                # Save model to wandb
+                if wandb.run:
+                    model_artifact = wandb.Artifact(
+                        name=f"model-epoch-{best_epoch}",
+                        type="model",
+                        description=f"Best model at epoch {best_epoch} with val_loss {best_val_loss:.6f} and mean_iou {mean_iou:.6f}"
+                    )
+                    model_artifact.add_file(model_save_path)
+                    wandb.log_artifact(model_artifact)
+                    
+                    # Also log as wandb.save for backup
+                    wandb.save(model_save_path)
+                    
+                    # Update summary metrics
+                    wandb.run.summary.update({
+                        "best_val_loss": best_val_loss,
+                        "best_mean_iou": best_mean_iou,
+                        "best_epoch": best_epoch,
+                        "total_training_time": time.time() - epoch_start_time
+                    })
+        
+        # Log epoch summary
+        if accelerator.is_main_process and wandb.run:
+            wandb.log({
+                "epoch_summary/is_best": is_best,
+                "epoch_summary/epoch_duration": epoch_time,
+                "epoch_summary/samples_processed": epoch_samples,
+                "epoch_summary/steps_per_epoch": train_step
+            }, step=global_step)
