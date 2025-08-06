@@ -30,4 +30,4 @@ accelerate launch --config_file accelerate_config.yaml train.py \
     --epochs 100 \
     --log_freq 5 \
     --project_name "pepper-segmentation-single" \
-    --run_name "cutmix_test_run"
+    --run_name "cutmix_test_1"

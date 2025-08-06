@@ -10,7 +10,7 @@ parameters:
   cutmix_prob:
     values: [0.3, 0.5, 0.7]
   learning_rate:
-    value: 2e-4
+    value: 1e-4
   batch_size:
     value: 3
   epochs:

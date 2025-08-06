@@ -242,10 +242,24 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
             is_best = True
             
             if accelerator.is_main_process:
-                # Save model locally
-                model_save_path = f"Output/best_model_epoch_{best_epoch}.pt"
+                # Save model locally with wandb run ID for traceability, without epoch in filename
+                run_id = None
+                run_name = None
+                try:
+                    import wandb
+                    if wandb.run is not None:
+                        run_id = wandb.run.id
+                        run_name = wandb.run.name
+                except Exception:
+                    pass
+                if run_id:
+                    model_save_path = f"Output/best_model_{run_id}.pt"
+                elif run_name:
+                    model_save_path = f"Output/best_model_{run_name}.pt"
+                else:
+                    model_save_path = f"Output/best_model.pt"
                 torch.save(accelerator.unwrap_model(model).state_dict(), model_save_path)
-                accelerator.print(f"Model saved at epoch {best_epoch} with validation loss: {best_val_loss:.6f}")
+                accelerator.print(f"Model saved with validation loss: {best_val_loss:.6f} at {model_save_path}")
                 
                 # Save model artifact using accelerator's tracker
                 try:
@@ -254,9 +268,9 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
                     if wandb_tracker:
                         # Access the underlying wandb run
                         artifact = wandb.Artifact(
-                            name=f"model-epoch-{best_epoch}",
+                            name=f"model-best",
                             type="model",
-                            description=f"Best model at epoch {best_epoch} with val_loss {best_val_loss:.6f} and mean_iou {mean_iou:.6f}"
+                            description=f"Best model with val_loss {best_val_loss:.6f} and mean_iou {mean_iou:.6f}"
                         )
                         artifact.add_file(model_save_path)
                         wandb.log_artifact(artifact)
@@ -277,3 +291,6 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
             "epoch_summary/samples_processed": epoch_samples,
             "epoch_summary/steps_per_epoch": train_step
         }, step=global_step)
+        
+        # Log validation loss for every epoch (explicitly for wandb)
+        accelerator.log({"val/loss": avg_val_loss, "epoch": epoch}, step=global_step)
