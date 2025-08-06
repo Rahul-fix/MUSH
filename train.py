@@ -113,16 +113,16 @@ def main():
     valid_dataset = ImageSegmentationDataset(base_val_ds, transform=train_transform, target_transform=target_transform, label2id=label2id)
 
     # Use config (from wandb.config or args)
-    TRAIN_BATCH_SIZE = config.batch_size
-    VALID_BATCH_SIZE = config.batch_size
+    TRAIN_BATCH_SIZE = int(config.batch_size)
+    VALID_BATCH_SIZE = int(config.batch_size)
     accelerator.print(f"Using train batch size: {TRAIN_BATCH_SIZE}")
 
     # CutMix Setup with config parameters
     os.makedirs("Output/cutmix", exist_ok=True)
     CUTMIX = get_cutmix_transform(
         num_classes=len(id2label_remapped),
-        alpha=config.cutmix_alpha,
-        prob=config.cutmix_prob,
+        alpha=float(config.cutmix_alpha),
+        prob=float(config.cutmix_prob),
         save_samples=True
     )
     accelerator.print(f"CutMix enabled: alpha={config.cutmix_alpha}, prob={config.cutmix_prob}")
@@ -161,8 +161,8 @@ def main():
     valid_dataloader = DataLoader(valid_dataset, batch_size=VALID_BATCH_SIZE, shuffle=False, collate_fn=validation_collate_fn, num_workers=2)
 
     # Model, Optimizer, Scheduler with config parameters
-    model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelerator.device)
-    optimizer = optim.SGD(model.parameters(), lr=config.learning_rate)
+    model = get_mask2former_model(num_labels=len(id2label_remapped))
+    optimizer = optim.SGD(model.parameters(), lr=float(config.learning_rate))
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=5e-6)
 
     # Log dataset and model info

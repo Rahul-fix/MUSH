@@ -19,7 +19,6 @@ fi
 # Check if sweep ID is provided
 if [ -z "$1" ]; then
     echo "Usage: qsub run_sweep_agent.sh <SWEEP_ID>"
-    echo "Example: qsub run_sweep_agent.sh o5kzw7e7"
     exit 1
 fi
 
@@ -27,33 +26,12 @@ SWEEP_ID=$1
 
 # The USERNAME detection will now correctly return "s7rakuma-uob" (entity)
 USERNAME=$(python -c "import wandb; api = wandb.Api(); print(api.default_entity)" 2>/dev/null)
-
-if [ -z "$USERNAME" ]; then
-    echo "ERROR: Could not get wandb username. Please check your API key."
-    exit 1
-fi
-
 FULL_SWEEP_PATH="$USERNAME/pepper-segmentation-sweep/$SWEEP_ID"
 
 echo "Running sweep agent for: $FULL_SWEEP_PATH"
+echo "This will use accelerate with 3 GPUs per run"
 
-# Create wrapper script for accelerate
-cat > temp_sweep_run.py << EOF
-#!/usr/bin/env python3
-import subprocess
-import sys
-cmd = ["accelerate", "launch", "--config_file", "accelerate_config.yaml", "train.py"]
-result = subprocess.run(cmd)
-sys.exit(result.returncode)
-EOF
-
-chmod +x temp_sweep_run.py
-export WANDB_PROGRAM="temp_sweep_run.py"
-
-# Run sweep agent with full path
+# Run sweep agent - it will now call accelerate_train.py which uses accelerate launch
 wandb agent --count 9 $FULL_SWEEP_PATH
-
-# Cleanup
-rm -f temp_sweep_run.py
 
 echo "Sweep agent completed."

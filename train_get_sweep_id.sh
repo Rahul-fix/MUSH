@@ -40,7 +40,6 @@ if [ -z "$SWEEP_ID" ]; then
 fi
 
 echo "Created sweep with ID: $SWEEP_ID"
-echo "To run agents, use: qsub run_sweep_agent.sh $SWEEP_ID"
+echo "To run agents, use: qsub run_single_sweep_job.sh $SWEEP_ID"
 echo "Sweep URL: https://wandb.ai/$USERNAME/pepper-segmentation-sweep/sweeps/$SWEEP_ID"
 echo 'Info All Sweeps run: python -c "import wandb; api = wandb.Api(); sweeps = api.project('\''pepper-segmentation-sweep'\'', entity='\''s7rakuma-uob'\'').sweeps(); print([(s.id, s.name, s.state) for s in sweeps])"'
-"

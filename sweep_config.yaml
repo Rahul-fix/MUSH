@@ -1,4 +1,4 @@
-program: train.py
+program: accelerate_train.py  # Must be a permanent file, not temporary
 project: pepper-segmentation-sweep
 method: grid
 metric:
