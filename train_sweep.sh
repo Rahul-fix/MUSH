@@ -23,7 +23,7 @@ fi
 
 # Create wandb sweep and get sweep ID
 echo "Creating wandb sweep..."
-SWEEP_ID=$(wandb sweep sweep_config.yaml --project pepper-segmentation-sweep 2>&1 | grep -oE '[a-z0-9]{8}' | tail -1)
+SWEEP_ID=$(wandb sweep sweep_config.yaml 2>&1 | grep -oE '[a-z0-9]{8}' | tail -1)
 
 if [ -z "$SWEEP_ID" ]; then
     echo "Failed to create sweep. Exiting."
@@ -31,13 +31,5 @@ if [ -z "$SWEEP_ID" ]; then
 fi
 
 echo "Created sweep with ID: $SWEEP_ID"
-echo "Running sweep agent..."
-
-# Run sweep agent with accelerate
-accelerate launch --config_file accelerate_config.yaml train.py \
-    --project_name "pepper-segmentation-sweep" \
-    --wandb_api_key "$WANDB_API_KEY" \
-    --log_freq 10 \
-    --epochs 100
-
-echo "Sweep completed."
+echo "To run agents, use: qsub run_sweep_agent.sh $SWEEP_ID"
+echo "Sweep URL: https://wandb.ai/$(wandb whoami)/pepper-segmentation-sweep/sweeps/$SWEEP_ID"

@@ -1,4 +1,4 @@
-#block(name=MUSH-agent, threads=2, memory=35000, subtasks=1, gpus=3, hours=10)
+#block(name=MUSH-agent, threads=4, memory=35000, subtasks=1, gpus=3, hours=35)
 
 source /home/s7rakuma/miniconda3/etc/profile.d/conda.sh
 conda activate MUSH
@@ -15,15 +15,12 @@ if [ -f ~/.wandb_api_key ]; then
     echo "Loaded wandb API key from ~/.wandb_api_key"
 else
     echo "ERROR: ~/.wandb_api_key file not found!"
-    echo "Please create this file with your wandb API key:"
-    echo "echo 'your_api_key_here' > ~/.wandb_api_key"
-    echo "chmod 600 ~/.wandb_api_key"
     exit 1
 fi
 
 # Check if sweep ID is provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 <SWEEP_ID>"
+    echo "Usage: qsub run_sweep_agent.sh <SWEEP_ID>"
     echo "Example: qsub run_sweep_agent.sh abc123de"
     exit 1
 fi
@@ -32,7 +29,28 @@ SWEEP_ID=$1
 
 echo "Running sweep agent for sweep ID: $SWEEP_ID"
 
+# Create a wrapper function that wandb agent can call
+cat > temp_sweep_run.py << EOF
+#!/usr/bin/env python3
+import subprocess
+import sys
+import os
+
+# Run train.py with accelerate
+cmd = ["accelerate", "launch", "--config_file", "accelerate_config.yaml", "train.py"]
+result = subprocess.run(cmd)
+sys.exit(result.returncode)
+EOF
+
+chmod +x temp_sweep_run.py
+
+# Set wandb to use our wrapper script
+export WANDB_PROGRAM="temp_sweep_run.py"
+
 # Run sweep agent
-wandb agent --count 1 $SWEEP_ID
+wandb agent --count 9 $SWEEP_ID
+
+# Cleanup
+rm -f temp_sweep_run.py
 
 echo "Sweep agent completed."

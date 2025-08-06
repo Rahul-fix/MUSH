@@ -131,7 +131,6 @@ class SegmentationCutMix:
         else:
             mask_np = mask_t.cpu().numpy()
 
-        print("Unique mask values before remap:", np.unique(mask_np))
         # --- Patch: handle mask values not in label2id ---
         # If mask contains values not in label2id, keep them as-is
         mask_remapped = remap_labels(mask_np, label2id).numpy()

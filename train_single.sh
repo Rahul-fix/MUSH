@@ -1,4 +1,4 @@
-#block(name=MUSH-single, threads=2, memory=35000, subtasks=1, gpus=3, hours=10)
+#block(name=MUSH-single, threads=4, memory=35000, subtasks=1, gpus=3, hours=10)
 
 source /home/s7rakuma/miniconda3/etc/profile.d/conda.sh
 conda activate MUSH
