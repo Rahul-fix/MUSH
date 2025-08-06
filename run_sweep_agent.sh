@@ -1,4 +1,4 @@
-#block(name=MUSH-agent, threads=4, memory=35000, subtasks=1, gpus=3, hours=35)
+#block(name=MUSH-agent, threads=3, memory=35000, subtasks=1, gpus=3, hours=6)
 
 source /home/s7rakuma/miniconda3/etc/profile.d/conda.sh
 conda activate MUSH
@@ -42,28 +42,7 @@ FULL_SWEEP_PATH="$USERNAME/pepper-segmentation-sweep/$SWEEP_ID"
 echo "Running ONE sweep job for: $FULL_SWEEP_PATH"
 echo "This job will use 3 GPUs and run ONE hyperparameter configuration"
 
-# Create a wrapper function that wandb agent can call
-cat > temp_sweep_run.py << EOF
-#!/usr/bin/env python3
-import subprocess
-import sys
-import os
-
-# Run train.py with accelerate
-cmd = ["accelerate", "launch", "--config_file", "accelerate_config.yaml", "train.py"]
-result = subprocess.run(cmd)
-sys.exit(result.returncode)
-EOF
-
-chmod +x temp_sweep_run.py
-
-# Set wandb to use our wrapper script
-export WANDB_PROGRAM="temp_sweep_run.py"
-
-# KEY CHANGE: Use wandb agent directly with --count 1 (OFFICIAL RECOMMENDATION)
+# Run wandb agent directly - it will call run_sweep_training.py which uses accelerate launch
 wandb agent --count 1 $FULL_SWEEP_PATH
-
-# Cleanup
-rm -f temp_sweep_run.py
 
 echo "Single sweep job completed."

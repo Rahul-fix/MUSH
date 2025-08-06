@@ -47,14 +47,13 @@ def main():
     
     # Initialize Accelerator with wandb tracking
     accelerator = Accelerator(log_with="wandb")
-    
-    # Initialize tracking only on main process
+
+    # Initialize tracking ONLY on main process
     if accelerator.is_main_process:
         # Check if we're in a sweep (wandb.run exists) or manual run
         if wandb.run is None:
-            # Manual run - use args to initialize wandb
+            # Manual run - initialize wandb
             run_name = args.run_name or f"cutmix_a{args.cutmix_alpha}_p{args.cutmix_prob}_lr{args.learning_rate}_bs{args.batch_size}"
-            
             accelerator.init_trackers(
                 project_name=args.project_name,
                 config=vars(args),
@@ -67,16 +66,11 @@ def main():
                 }
             )
         else:
-            # Sweep run - wandb is already initialized, just init accelerate tracking
+            # Sweep run - wandb is already initialized by the agent
+            # Just init accelerate tracking without initializing wandb again
             accelerator.init_trackers(
                 project_name=wandb.run.project,
-                config=dict(wandb.config),
-                init_kwargs={
-                    "wandb": {
-                        "name": wandb.run.name,
-                        "tags": ["cutmix", "mask2former", "pepper-segmentation", "sweep"],
-                    }
-                }
+                config=dict(wandb.config)
             )
         
         # Log system info
@@ -87,18 +81,17 @@ def main():
             "system/node_name": os.environ.get("HOSTNAME", "unknown")
         })
 
-    # Use wandb.config if available (sweep), otherwise use args (manual run)
-    if wandb.run is not None:
-        config = wandb.config
-        accelerator.print("Using wandb.config from sweep")
+    # Handle config selection for all processes
+    if accelerator.is_main_process:
+        if wandb.run is not None:
+            config = wandb.config
+            accelerator.print("Using wandb.config from sweep")
+        else:
+            config = args
+            accelerator.print("Using args config for manual run")
     else:
-        # Create a config-like object from args for consistency
-        class ConfigFromArgs:
-            def __init__(self, args):
-                for key, value in vars(args).items():
-                    setattr(self, key, value)
-        config = ConfigFromArgs(args)
-        accelerator.print("Using args config for manual run")
+        # Non-main processes: don't initialize tracking, just create config
+        config = wandb.config if wandb.run is not None else args
 
     # Dataset Paths
     coco_file_path = os.path.expanduser("/scratch/s7rakuma/datasets/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
@@ -157,12 +150,12 @@ def main():
         }
 
     # DataLoaders
-    train_dataloader = DataLoader(train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True, collate_fn=train_collate_fn, num_workers=2)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=VALID_BATCH_SIZE, shuffle=False, collate_fn=validation_collate_fn, num_workers=2)
+    train_dataloader = DataLoader(train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True, collate_fn=train_collate_fn, num_workers=0)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=VALID_BATCH_SIZE, shuffle=False, collate_fn=validation_collate_fn, num_workers=0)
 
     # Model, Optimizer, Scheduler with config parameters
     model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelerator.device)
-    optimizer = optim.SGD(model.parameters(), lr=config.learning_rate)
+    optimizer = optim.SGD(model.parameters(), lr=float(config.learning_rate))
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=5e-6)
 
     # Log dataset and model info

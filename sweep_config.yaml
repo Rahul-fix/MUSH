@@ -1,4 +1,4 @@
-program: train.py
+program: run_sweep_training.py
 project: pepper-segmentation-sweep
 method: grid
 metric:
