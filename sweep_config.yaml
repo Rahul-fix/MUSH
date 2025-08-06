@@ -1,4 +1,5 @@
 program: train.py
+project: pepper-segmentation-sweep
 method: grid
 metric:
   goal: maximize
@@ -9,15 +10,13 @@ parameters:
   cutmix_prob:
     values: [0.3, 0.5, 0.7]
   learning_rate:
-    values: [2e-4]
+    value: 2e-4
   batch_size:
-    values: [3]
+    value: 3
   epochs:
     value: 100
   log_freq:
     value: 10
-  project_name:
-    value: "pepper-segmentation-sweep"
 early_terminate:
   type: hyperband
   min_iter: 15

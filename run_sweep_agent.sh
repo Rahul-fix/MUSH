@@ -29,6 +29,19 @@ SWEEP_ID=$1
 
 echo "Running sweep agent for sweep ID: $SWEEP_ID"
 
+# Get username automatically
+USERNAME=$(python -c "import wandb; api = wandb.Api(); print(api.default_entity)" 2>/dev/null)
+
+if [ -z "$USERNAME" ]; then
+    echo "ERROR: Could not get wandb username. Please check your API key."
+    exit 1
+fi
+
+FULL_SWEEP_PATH="$USERNAME/pepper-segmentation-sweep/$SWEEP_ID"
+
+echo "Running ONE sweep job for: $FULL_SWEEP_PATH"
+echo "This job will use 3 GPUs and run ONE hyperparameter configuration"
+
 # Create a wrapper function that wandb agent can call
 cat > temp_sweep_run.py << EOF
 #!/usr/bin/env python3
@@ -47,10 +60,10 @@ chmod +x temp_sweep_run.py
 # Set wandb to use our wrapper script
 export WANDB_PROGRAM="temp_sweep_run.py"
 
-# Run sweep agent
-wandb agent --count 9 $SWEEP_ID
+# KEY CHANGE: Use wandb agent directly with --count 1 (OFFICIAL RECOMMENDATION)
+wandb agent --count 1 $FULL_SWEEP_PATH
 
 # Cleanup
 rm -f temp_sweep_run.py
 
-echo "Sweep agent completed."
+echo "Single sweep job completed."
