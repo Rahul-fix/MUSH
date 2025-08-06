@@ -1,4 +1,5 @@
 program: train.py
+project: pepper-segmentation-sweep
 method: grid
 metric:
   goal: maximize
@@ -16,8 +17,6 @@ parameters:
     value: 100
   log_freq:
     value: 10
-  project_name:
-    value: "pepper-segmentation-sweep"
 early_terminate:
   type: hyperband
   min_iter: 15

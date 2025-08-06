@@ -25,11 +25,22 @@ fi
 echo "Creating wandb sweep..."
 SWEEP_ID=$(wandb sweep sweep_config.yaml 2>&1 | grep -oE '[a-z0-9]{8}' | tail -1)
 
+# The USERNAME detection will now correctly return "s7rakuma-uob" (entity)
+USERNAME=$(python -c "import wandb; api = wandb.Api(); print(api.default_entity)" 2>/dev/null)
+
+if [ -z "$USERNAME" ]; then
+    echo "ERROR: Could not get wandb username. Please check your API key."
+    echo "ERROR: wandb login may be required."
+    exit 1
+fi
+
 if [ -z "$SWEEP_ID" ]; then
-    echo "Failed to create sweep. Exiting."
+    echo "ERROR: Failed to create sweep. Exiting."
     exit 1
 fi
 
 echo "Created sweep with ID: $SWEEP_ID"
 echo "To run agents, use: qsub run_sweep_agent.sh $SWEEP_ID"
-echo "Sweep URL: https://wandb.ai/$(wandb whoami)/pepper-segmentation-sweep/sweeps/$SWEEP_ID"
+echo "Sweep URL: https://wandb.ai/$USERNAME/pepper-segmentation-sweep/sweeps/$SWEEP_ID"
+echo 'Info All Sweeps run: python -c "import wandb; api = wandb.Api(); sweeps = api.project('\''pepper-segmentation-sweep'\'', entity='\''s7rakuma-uob'\'').sweeps(); print([(s.id, s.name, s.state) for s in sweeps])"'
+"
