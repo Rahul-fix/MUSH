@@ -8,8 +8,8 @@ import numpy as np
 from src.utils.palette import remap_labels, label2id
 from src.utils.training_summary import log_training_summary
 from PIL import Image
-import wandb
 import time
+import wandb  # Add this import at the top
 
 try:
     import psutil
@@ -27,6 +27,14 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
     # Initialize metrics tracking
     running_loss = 0.0
     num_samples = 0
+    
+    # Verify wandb tracker is available
+    try:
+        wandb_tracker = accelerator.get_tracker("wandb")
+        if not wandb_tracker:
+            accelerator.print("Warning: Wandb tracker not found")
+    except Exception as e:
+        accelerator.print(f"Warning: Could not access wandb tracker: {e}")
     
     for epoch in range(epochs):
         epoch_start_time = time.time()
@@ -242,41 +250,42 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
             is_best = True
             
             if accelerator.is_main_process:
-                # Save model locally with wandb run ID for traceability, without epoch in filename
+                # Get run info through accelerator tracker
                 run_id = None
                 run_name = None
                 try:
-                    import wandb
-                    if wandb.run is not None:
-                        run_id = wandb.run.id
-                        run_name = wandb.run.name
+                    wandb_tracker = accelerator.get_tracker("wandb")
+                    if wandb_tracker and hasattr(wandb_tracker, 'tracker'):
+                        run_id = wandb_tracker.tracker.id
+                        run_name = wandb_tracker.tracker.name
                 except Exception:
                     pass
+                
+                # Save model locally
                 if run_id:
                     model_save_path = f"Output/best_model_{run_id}.pt"
                 elif run_name:
                     model_save_path = f"Output/best_model_{run_name}.pt"
                 else:
                     model_save_path = f"Output/best_model.pt"
+                
                 torch.save(accelerator.unwrap_model(model).state_dict(), model_save_path)
                 accelerator.print(f"Model saved with validation loss: {best_val_loss:.6f} at {model_save_path}")
                 
-                # Save model artifact using accelerator's tracker
+                # Save model artifact through accelerator's tracker
                 try:
-                    # Get wandb tracker through accelerator
                     wandb_tracker = accelerator.get_tracker("wandb")
-                    if wandb_tracker:
-                        # Access the underlying wandb run
+                    if wandb_tracker and hasattr(wandb_tracker, 'tracker'):
                         artifact = wandb.Artifact(
-                            name=f"model-best",
+                            name="model-best",
                             type="model",
                             description=f"Best model with val_loss {best_val_loss:.6f} and mean_iou {mean_iou:.6f}"
                         )
                         artifact.add_file(model_save_path)
-                        wandb.log_artifact(artifact)
+                        wandb_tracker.tracker.log_artifact(artifact)
                         
                         # Update summary metrics
-                        wandb.run.summary.update({
+                        wandb_tracker.tracker.summary.update({
                             "best_val_loss": best_val_loss,
                             "best_mean_iou": best_mean_iou,
                             "best_epoch": best_epoch

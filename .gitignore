@@ -24,3 +24,4 @@ q.log/*
 
 q.log/MUSH-mask2former.0004158
 wandb/*
+.MUSH-agent.4345
