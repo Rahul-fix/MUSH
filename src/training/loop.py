@@ -65,6 +65,10 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
             )
             
             loss = outputs.loss
+            # Check for invalid loss before backward pass
+            if torch.isnan(loss) or torch.isinf(loss):
+                accelerator.print(f"WARNING: Invalid loss detected at step {idx}: {loss}")
+                continue
             accelerator.backward(loss)
 
             batch_size = batch["pixel_values"].size(0)
