@@ -246,17 +246,35 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
         
         accelerator.print(f"Validation Loss: {avg_val_loss:.6f}")
         
-        # Save best model
+        # Save model every 20th epoch (local only)
+        if accelerator.is_main_process and (epoch + 1) % 20 == 0:
+            run_id, run_name = None, None
+            try:
+                wandb_tracker = accelerator.get_tracker("wandb")
+                if wandb_tracker and hasattr(wandb_tracker, 'tracker'):
+                    run_id = wandb_tracker.tracker.id
+                    run_name = wandb_tracker.tracker.name
+            except Exception:
+                pass
+            periodic_path = f"Output/model_epoch{epoch+1}_"
+            if run_id:
+                periodic_path += f"{run_id}.pt"
+            elif run_name:
+                periodic_path += f"{run_name}.pt"
+            else:
+                periodic_path += "default.pt"
+            torch.save(accelerator.unwrap_model(model).state_dict(), periodic_path)
+            accelerator.print(f"Model checkpoint saved at {periodic_path}")
+
+        # Save best model (local and wandb artifact, only once per new best)
         is_best = False
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             best_epoch = epoch
             is_best = True
-            
+
             if accelerator.is_main_process:
-                # Get run info through accelerator tracker
-                run_id = None
-                run_name = None
+                run_id, run_name = None, None
                 try:
                     wandb_tracker = accelerator.get_tracker("wandb")
                     if wandb_tracker and hasattr(wandb_tracker, 'tracker'):
@@ -264,31 +282,33 @@ def train(model, optimizer, train_dataloader, valid_dataloader, id2label_remappe
                         run_name = wandb_tracker.tracker.name
                 except Exception:
                     pass
-                
-                # Save model locally
+                best_path = f"Output/best_model_"
                 if run_id:
-                    model_save_path = f"Output/best_model_{run_id}.pt"
+                    best_path += f"{run_id}.pt"
                 elif run_name:
-                    model_save_path = f"Output/best_model_{run_name}.pt"
+                    best_path += f"{run_name}.pt"
                 else:
-                    model_save_path = f"Output/best_model.pt"
-                
-                torch.save(accelerator.unwrap_model(model).state_dict(), model_save_path)
-                accelerator.print(f"Model saved with validation loss: {best_val_loss:.6f} at {model_save_path}")
-                
-                # Save model artifact through accelerator's tracker
+                    best_path += "default.pt"
+                torch.save(accelerator.unwrap_model(model).state_dict(), best_path)
+                accelerator.print(f"Best model saved with validation loss: {best_val_loss:.6f} at {best_path}")
+
+                # Save model artifact through wandb only once per new best
                 try:
                     wandb_tracker = accelerator.get_tracker("wandb")
                     if wandb_tracker and hasattr(wandb_tracker, 'tracker'):
+                        # Use run_id/run_name in artifact name to avoid versioning
+                        artifact_name = f"model-best"
+                        if run_id:
+                            artifact_name += f"-{run_id}"
+                        elif run_name:
+                            artifact_name += f"-{run_name}"
                         artifact = wandb.Artifact(
-                            name="model-best",
+                            name=artifact_name,
                             type="model",
                             description=f"Best model with val_loss {best_val_loss:.6f} and mean_iou {mean_iou:.6f}"
                         )
-                        artifact.add_file(model_save_path)
+                        artifact.add_file(best_path)
                         wandb_tracker.tracker.log_artifact(artifact)
-                        
-                        # Update summary metrics
                         wandb_tracker.tracker.summary.update({
                             "best_val_loss": best_val_loss,
                             "best_mean_iou": best_mean_iou,
