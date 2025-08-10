@@ -3,6 +3,7 @@ import sys
 import yaml
 import itertools
 from pathlib import Path
+import wandb
 
 def load_config(config_path):
     """Load configuration from YAML file"""
@@ -27,6 +28,20 @@ def generate_combinations(parameters):
 def run_single_experiment(config_params, project_name, base_run_name="experiment"):
     """Run a single experiment with given parameters"""
     run_name = f"{base_run_name}_" + "_".join([f"{k}{v}" for k, v in config_params.items()])
+    return run_name
+
+def experiment_already_ran(run_name, project_name):
+    """Check if a run with the given run_name already exists in the wandb project."""
+    try:
+        api = wandb.Api()
+        runs = api.runs(project_name)
+        for run in runs:
+            if run.name == run_name:
+                return True
+        return False
+    except Exception as e:
+        print(f"Warning: Could not check wandb for existing runs due to: {e}")
+        return False
     
     cmd = [
         "accelerate", "launch",
@@ -68,14 +83,33 @@ def main():
     for i, combo in enumerate(combinations, 1):
         print(f"\n--- Running experiment {i}/{len(combinations)} ---")
         print(f"Parameters: {combo}")
-        
-        success = run_single_experiment(combo, project_name, f"run_{i}")
-        if success:
-            successful_runs += 1
-        else:
-            print(f"Stopping grid search due to failure in run {i}")
-            break
-    
+        run_name = f"run_{i}_" + "_".join([f"{k}{v}" for k, v in combo.items()])
+        if experiment_already_ran(run_name, project_name):
+            print(f"Run {run_name} already exists in wandb project {project_name}. Skipping.")
+            continue
+        attempt = 1
+        while True:
+            print(f"Attempt {attempt} for experiment {i}")
+            # Actually run the experiment
+            # Use the original run_single_experiment logic, but skip run_name generation
+            cmd = [
+                "accelerate", "launch",
+                "--config_file", "accelerate_config.yaml",
+                "train.py"
+            ]
+            for param, value in combo.items():
+                cmd.extend([f"--{param}", str(value)])
+            cmd.extend(["--project_name", project_name])
+            cmd.extend(["--run_name", run_name])
+            print(f"Executing: {' '.join(cmd)}")
+            result = subprocess.run(cmd)
+            if result.returncode == 0:
+                successful_runs += 1
+                print(f"Experiment completed successfully: {run_name}")
+                break
+            else:
+                print(f"Experiment {i} failed on attempt {attempt}. Retrying...")
+                attempt += 1
     print(f"\n--- Grid Search Complete ---")
     print(f"Successful runs: {successful_runs}/{len(combinations)}")
 
