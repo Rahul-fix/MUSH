@@ -101,12 +101,14 @@ def main():
     # Collate Functions
     def train_collate_fn(batch):
         images, masks, _, orig_masks = zip(*batch)
+        # Stack images and masks into tensors
+        images_tensor = torch.stack(list(images), dim=0)
+        masks_tensor = torch.stack(list(masks), dim=0)
+        # Apply CutMix to images and integer masks
+        cutmix_images, cutmix_masks = CUTMIX(images_tensor, masks_tensor)
+        # Pass CutMix outputs to processor
         processor = get_preprocessor(len(id2label_remapped))
-        proc = processor(list(images), segmentation_maps=list(masks), return_tensors="pt")
-        
-        # Apply CutMix only during training
-        proc["pixel_values"], proc["mask_labels"] = CUTMIX(proc["pixel_values"], proc["mask_labels"])
-        
+        proc = processor(list(cutmix_images), segmentation_maps=list(cutmix_masks), return_tensors="pt")
         return {
             "pixel_values": proc["pixel_values"],
             "mask_labels": list(proc["mask_labels"]),
