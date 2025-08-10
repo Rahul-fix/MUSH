@@ -1,0 +1,17 @@
+# Grid search configuration
+project: pepper-segmentation-grid
+method: grid  # Reference only - not used by grid search script
+
+parameters:
+  cutmix_alpha:
+    values: [0.5]
+  cutmix_prob:
+    values: [0.5]
+  learning_rate:
+    values: [1e-4]
+  batch_size:
+    value: 3
+  epochs:
+    value: 100
+  log_freq:
+    value: 10

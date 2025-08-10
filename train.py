@@ -1,7 +1,6 @@
 import os
 import torch
 import argparse
-import wandb
 import time
 from datetime import datetime
 from torch.utils.data import DataLoader
@@ -22,7 +21,7 @@ def parse_args():
     parser.add_argument("--learning_rate", type=float, default=2e-4)
     parser.add_argument("--batch_size", type=int, default=3)
     parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--project_name", type=str, default="pepper-segmentation-sweep")
+    parser.add_argument("--project_name", type=str, default="pepper-segmentation")
     parser.add_argument("--run_name", type=str, default=None)
     parser.add_argument("--log_freq", type=int, default=10, help="Log every N steps")
     parser.add_argument("--wandb_api_key", type=str, default=None, help="Wandb API key")
@@ -48,30 +47,21 @@ def main():
     # Initialize Accelerator with wandb tracking
     accelerator = Accelerator(log_with="wandb")
 
-    # Initialize tracking ONLY on main process
+    # Initialize tracking ONLY on main process - SIMPLIFIED
     if accelerator.is_main_process:
-        # Check if we're in a sweep (wandb.run exists) or manual run
-        if wandb.run is None:
-            # Manual run - initialize wandb
-            run_name = args.run_name or f"cutmix_a{args.cutmix_alpha}_p{args.cutmix_prob}_lr{args.learning_rate}_bs{args.batch_size}"
-            accelerator.init_trackers(
-                project_name=args.project_name,
-                config=vars(args),
-                init_kwargs={
-                    "wandb": {
-                        "name": run_name,
-                        "tags": ["cutmix", "mask2former", "pepper-segmentation"],
-                        "notes": f"Manual run with CutMix alpha={args.cutmix_alpha}, prob={args.cutmix_prob}"
-                    }
+        run_name = args.run_name or f"cutmix_a{args.cutmix_alpha}_p{args.cutmix_prob}_lr{args.learning_rate}_bs{args.batch_size}"
+        
+        accelerator.init_trackers(
+            project_name=args.project_name,
+            config=vars(args),
+            init_kwargs={
+                "wandb": {
+                    "name": run_name,
+                    "tags": ["cutmix", "mask2former", "pepper-segmentation"],
+                    "notes": f"Grid search run with CutMix alpha={args.cutmix_alpha}, prob={args.cutmix_prob}"
                 }
-            )
-        else:
-            # Sweep run - wandb is already initialized by the agent
-            # Just init accelerate tracking without initializing wandb again
-            accelerator.init_trackers(
-                project_name=wandb.run.project,
-                config=dict(wandb.config)
-            )
+            }
+        )
         
         # Log system info
         accelerator.log({
@@ -80,18 +70,6 @@ def main():
             "system/num_processes": accelerator.num_processes,
             "system/node_name": os.environ.get("HOSTNAME", "unknown")
         })
-
-    # Handle config selection for all processes
-    if accelerator.is_main_process:
-        if wandb.run is not None:
-            config = wandb.config
-            accelerator.print("Using wandb.config from sweep")
-        else:
-            config = args
-            accelerator.print("Using args config for manual run")
-    else:
-        # Non-main processes: don't initialize tracking, just create config
-        config = wandb.config if wandb.run is not None else args
 
     # Dataset Paths
     coco_file_path = os.path.expanduser("/scratch/s7rakuma/datasets/CKA_sweet_pepper_2020_summer/CKA_sweet_pepper_2020_summer.json")
@@ -105,20 +83,20 @@ def main():
     train_dataset = ImageSegmentationDataset(base_train_ds, transform=train_transform, target_transform=target_transform, label2id=label2id)
     valid_dataset = ImageSegmentationDataset(base_val_ds, transform=train_transform, target_transform=target_transform, label2id=label2id)
 
-    # Use config (from wandb.config or args)
-    TRAIN_BATCH_SIZE = config.batch_size
-    VALID_BATCH_SIZE = config.batch_size
+    # Use args directly - simplified config handling
+    TRAIN_BATCH_SIZE = args.batch_size
+    VALID_BATCH_SIZE = args.batch_size
     accelerator.print(f"Using train batch size: {TRAIN_BATCH_SIZE}")
 
-    # CutMix Setup with config parameters
+    # CutMix Setup with args parameters
     os.makedirs("Output/cutmix", exist_ok=True)
     CUTMIX = get_cutmix_transform(
         num_classes=len(id2label_remapped),
-        alpha=config.cutmix_alpha,
-        prob=config.cutmix_prob,
+        alpha=args.cutmix_alpha,
+        prob=args.cutmix_prob,
         save_samples=True
     )
-    accelerator.print(f"CutMix enabled: alpha={config.cutmix_alpha}, prob={config.cutmix_prob}")
+    accelerator.print(f"CutMix enabled: alpha={args.cutmix_alpha}, prob={args.cutmix_prob}")
 
     # Collate Functions
     def train_collate_fn(batch):
@@ -153,9 +131,9 @@ def main():
     train_dataloader = DataLoader(train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True, collate_fn=train_collate_fn, num_workers=0)
     valid_dataloader = DataLoader(valid_dataset, batch_size=VALID_BATCH_SIZE, shuffle=False, collate_fn=validation_collate_fn, num_workers=0)
 
-    # Model, Optimizer, Scheduler with config parameters
+    # Model, Optimizer, Scheduler with args parameters
     model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelerator.device)
-    optimizer = optim.SGD(model.parameters(), lr=float(config.learning_rate))
+    optimizer = optim.SGD(model.parameters(), lr=float(args.learning_rate))
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=5e-6)
 
     # Log dataset and model info
@@ -171,10 +149,10 @@ def main():
             "model/total_parameters": total_params,
             "model/trainable_parameters": trainable_params,
             "model/backbone": "mask2former-swin-base-ade-semantic",
-            "config/cutmix_alpha": config.cutmix_alpha,
-            "config/cutmix_prob": config.cutmix_prob,
-            "config/learning_rate": config.learning_rate,
-            "config/batch_size": config.batch_size
+            "config/cutmix_alpha": args.cutmix_alpha,
+            "config/cutmix_prob": args.cutmix_prob,
+            "config/learning_rate": args.learning_rate,
+            "config/batch_size": args.batch_size
         })
 
     # Prepare for distributed training
@@ -182,10 +160,10 @@ def main():
         model, optimizer, scheduler, train_dataloader, valid_dataloader
     )
 
-    # Train with config parameters
+    # Train with args parameters
     train(model, optimizer, train_dataloader, valid_dataloader, id2label_remapped,
-          accelerator.device, accelerator, epochs=config.epochs, scheduler=scheduler, 
-          log_freq=getattr(config, 'log_freq', 10))
+          accelerator.device, accelerator, epochs=args.epochs, scheduler=scheduler, 
+          log_freq=args.log_freq)
 
     # End time
     end_time = time.time()
