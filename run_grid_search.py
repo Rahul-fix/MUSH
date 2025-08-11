@@ -26,7 +26,12 @@ def generate_combinations(parameters):
 
 def run_single_experiment(config_params, project_name, base_run_name="experiment"):
     """Run a single experiment with given parameters"""
-    run_name = f"{base_run_name}_" + "_".join([f"{k}{v}" for k, v in config_params.items()])
+    # Generate run name based only on parameter values for uniqueness
+    run_name = "_".join([f"{k}{v}" for k, v in config_params.items()])
+
+    # Print run details before execution
+    print(f"\n[RUN] Starting experiment: {run_name}")
+    print(f"[RUN] Parameters: {config_params}")
     
     cmd = [
         "accelerate", "launch",
@@ -41,7 +46,7 @@ def run_single_experiment(config_params, project_name, base_run_name="experiment
     cmd.extend(["--project_name", project_name])
     cmd.extend(["--run_name", run_name])
     
-    print(f"Executing: {' '.join(cmd)}")
+    print(f"[RUN] Command: {' '.join(cmd)}")
     result = subprocess.run(cmd)
     
     if result.returncode != 0:
@@ -69,7 +74,7 @@ def main():
         print(f"\n--- Running experiment {i}/{len(combinations)} ---")
         print(f"Parameters: {combo}")
         
-        success = run_single_experiment(combo, project_name, f"run_{i}")
+        success = run_single_experiment(combo, project_name)
         if success:
             successful_runs += 1
         else:
