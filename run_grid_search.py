@@ -2,8 +2,8 @@ import subprocess
 import sys
 import yaml
 import itertools
+import json
 from pathlib import Path
-import wandb
 
 def load_config(config_path):
     """Load configuration from YAML file"""
@@ -25,91 +25,80 @@ def generate_combinations(parameters):
     combinations = list(itertools.product(*param_values))
     return [(dict(zip(param_names, combo))) for combo in combinations]
 
-def run_single_experiment(config_params, project_name, base_run_name="experiment"):
+def run_single_experiment(config_params, project_name, run_name, log_path):
     """Run a single experiment with given parameters"""
-    run_name = f"{base_run_name}_" + "_".join([f"{k}{v}" for k, v in config_params.items()])
-    return run_name
-
-def experiment_already_ran(run_name, project_name):
-    """Check if a run with the given run_name already exists in the wandb project."""
-    try:
-        api = wandb.Api()
-        runs = api.runs(project_name)
-        for run in runs:
-            if run.name == run_name:
-                return True
-        return False
-    except Exception as e:
-        print(f"Warning: Could not check wandb for existing runs due to: {e}")
-        return False
-    
+    # Print run details before execution
+    print(f"\n[RUN] Starting experiment: {run_name}")
+    print(f"[RUN] Parameters: {config_params}")
     cmd = [
         "accelerate", "launch",
         "--config_file", "accelerate_config.yaml",
         "train.py"
     ]
-    
-    # Add parameters as command line arguments
     for param, value in config_params.items():
         cmd.extend([f"--{param}", str(value)])
-    
     cmd.extend(["--project_name", project_name])
     cmd.extend(["--run_name", run_name])
-    
-    print(f"Executing: {' '.join(cmd)}")
-    result = subprocess.run(cmd)
-    
-    if result.returncode != 0:
-        print(f"Experiment failed with return code: {result.returncode}")
-        return False
-    
-    print(f"Experiment completed successfully: {run_name}")
-    return True
+    print(f"[RUN] Command: {' '.join(cmd)}")
+    max_retries = 2
+    for attempt in range(1, max_retries + 2):
+        result = subprocess.run(cmd)
+        if result.returncode == 0:
+            print(f"Experiment completed successfully: {run_name}")
+            update_experiment_log(log_path, run_name, "finished")
+            return True
+        else:
+            print(f"Experiment failed with return code: {result.returncode} (Attempt {attempt})")
+            if attempt < max_retries + 1:
+                print(f"Retrying experiment: {run_name}")
+            else:
+                print(f"Experiment failed after {max_retries + 1} attempts: {run_name}")
+                update_experiment_log(log_path, run_name, "failed")
+                return False
+
+def update_experiment_log(log_path, run_name, status):
+    try:
+        with open(log_path, 'r') as f:
+            log = json.load(f)
+    except Exception:
+        log = {}
+    log[run_name] = status
+    with open(log_path, 'w') as f:
+        json.dump(log, f, indent=2)
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python run_grid_search.py <config_file>")
-        sys.exit(1)
-    
-    config_file = sys.argv[1]  # Fixed: Added index 1 to get the argument
+    if len(sys.argv) == 2:
+        config_file = sys.argv[1]
+    else:
+        print("No config file provided. Defaulting to 'grid_config.yaml'.")
+        config_file = "grid_config.yaml"
     config = load_config(config_file)
     parameters = config.get('parameters', {})
+    # TODO: change project name if needed it needs to be same as wandb config.yml
     project_name = config.get('project', 'pepper-segmentation-grid')
     combinations = generate_combinations(parameters)
-    
+    log_path = "experiment_log.json"
+    try:
+        with open(log_path, 'r') as f:
+            experiment_log = json.load(f)
+    except Exception:
+        experiment_log = {}
     print(f"Found {len(combinations)} parameter combinations to run")
-    
     successful_runs = 0
     for i, combo in enumerate(combinations, 1):
+        run_name = "_".join([f"{k}{v}" for k, v in combo.items()])
+        status = experiment_log.get(run_name)
+        if status == "finished":
+            print(f"[SKIP] Experiment already finished: {run_name}")
+            continue
         print(f"\n--- Running experiment {i}/{len(combinations)} ---")
         print(f"Parameters: {combo}")
-        run_name = f"run_{i}_" + "_".join([f"{k}{v}" for k, v in combo.items()])
-        if experiment_already_ran(run_name, project_name):
-            print(f"Run {run_name} already exists in wandb project {project_name}. Skipping.")
-            continue
-        attempt = 1
-        while True:
-            print(f"Attempt {attempt} for experiment {i}")
-            # Actually run the experiment
-            # Use the original run_single_experiment logic, but skip run_name generation
-            cmd = [
-                "accelerate", "launch",
-                "--config_file", "accelerate_config.yaml",
-                "train.py"
-            ]
-            for param, value in combo.items():
-                cmd.extend([f"--{param}", str(value)])
-            cmd.extend(["--project_name", project_name])
-            cmd.extend(["--run_name", run_name])
-            print(f"Executing: {' '.join(cmd)}")
-            result = subprocess.run(cmd)
-            if result.returncode == 0:
-                successful_runs += 1
-                print(f"Experiment completed successfully: {run_name}")
-                break
-            else:
-                print(f"Experiment {i} failed on attempt {attempt}. Retrying...")
-                attempt += 1
+        success = run_single_experiment(combo, project_name, run_name, log_path)
+        if success:
+            successful_runs += 1
+        else:
+            print(f"Stopping grid search due to failure in run {i}")
+            break
     print(f"\n--- Grid Search Complete ---")
     print(f"Successful runs: {successful_runs}/{len(combinations)}")
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-#block(name=MUSH-grid, threads=4, memory=35000, subtasks=1, gpus=3, hours=12)
+#block(name=MUSH-grid, threads=4, memory=35000, subtasks=1, gpus=4, hours=20)
 
 source /home/s7rakuma/miniconda3/etc/profile.d/conda.sh
 conda activate MUSH

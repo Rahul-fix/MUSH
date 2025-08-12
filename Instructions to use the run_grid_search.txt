@@ -1,0 +1,12 @@
+Instructions to use the run_grid_search.sh
+1. submit the job with wandb config.yaml. It will generatate the combination for grid search. 
+  - $qsub run_grid_search.sh <name of config.yaml> # e.g. grig_config.yaml
+2. Modify the grid_config.yaml
+  - Change project name, hyperparameters 
+3. Modify run_grid_search.py for changing project name
+  - Change project name based on the config.yaml
+4. All experiments run will be stored in "experiment_log.json"
+  - You can manually mark some of the runs with "finished" if you ran them already. This way it will not start that specific combination of run for experiment.
+5. Check online on wandb website for the project and manage the runs of the experiment.
+6. All the outputs will be save in Output/ folder.
+7. Check for the saved models in with unique run_name_id at end of their name in Output/ folder. Check for the logs on the cluster or wandb online to find that id.

@@ -130,8 +130,8 @@ def main():
         }
 
     # DataLoaders
-    train_dataloader = DataLoader(train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True, collate_fn=train_collate_fn, num_workers=0)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=VALID_BATCH_SIZE, shuffle=False, collate_fn=validation_collate_fn, num_workers=0)
+    train_dataloader = DataLoader(train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True, collate_fn=train_collate_fn, num_workers=2)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=VALID_BATCH_SIZE, shuffle=False, collate_fn=validation_collate_fn, num_workers=2)
 
     # Model, Optimizer, Scheduler with args parameters
     model = get_mask2former_model(num_labels=len(id2label_remapped), device=accelerator.device)
