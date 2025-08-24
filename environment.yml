@@ -19,6 +19,7 @@ dependencies:
       - torch==1.13.1+cu116  # Install PyTorch with CUDA 11.6 via pip
       - torchvision==0.14.1+cu116
       - transformers==4.36.2  # Updated for MaskFormer/Mask2Former support
+      - torchmetrics==0.10.3
       - evaluate
       - accelerate
       - --extra-index-url https://download.pytorch.org/whl/cu116
