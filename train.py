@@ -18,7 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cutmix_alpha", type=float, default=1.0)
     parser.add_argument("--cutmix_prob", type=float, default=0.5)
-    parser.add_argument("--image_size", type=int, default=512, help="Image size for resizing input images")
+    parser.add_argument("--image_size", type=int, nargs=2, default=[512, 288], help="Image size as [width, height] for resizing input images")
     parser.add_argument("--learning_rate", type=float, default=2e-4)
     parser.add_argument("--batch_size", type=int, default=3)
     parser.add_argument("--epochs", type=int, default=100)
@@ -79,24 +79,24 @@ def main():
     base_val_ds = COCODataset(coco_file_path, root_dir=dataset_root_dir, split='valid', transform=None)
 
     # Set image size for training and validation from argument
-    IMAGE_SIZE = args.image_size
+    IMAGE_SIZE = tuple(args.image_size)  # (width, height)
     accelerator.print(f"[AUG] Using Resize augmentation with image size: {IMAGE_SIZE}")
     from torchvision import transforms
     import numpy as np
     ADE_MEAN = np.array([123.675, 116.280, 103.530]) / 255.0
     ADE_STD = np.array([58.395, 57.120, 57.375]) / 255.0
     train_transform = transforms.Compose([
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.Resize(IMAGE_SIZE),
         transforms.ToTensor(),
         transforms.Normalize(mean=ADE_MEAN, std=ADE_STD),
     ])
     test_transform = transforms.Compose([
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.Resize(IMAGE_SIZE),
         transforms.ToTensor(),
         transforms.Normalize(mean=ADE_MEAN, std=ADE_STD),
     ])
     target_transform = transforms.Compose([
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE), interpolation=transforms.InterpolationMode.NEAREST)
+        transforms.Resize(IMAGE_SIZE, interpolation=transforms.InterpolationMode.NEAREST)
     ])
     train_dataset = ImageSegmentationDataset(base_train_ds, transform=train_transform, target_transform=target_transform, label2id=label2id)
     valid_dataset = ImageSegmentationDataset(base_val_ds, transform=test_transform, target_transform=target_transform, label2id=label2id)

@@ -8,5 +8,6 @@
   "cutmix_alpha1.5_cutmix_prob0.3_learning_rate1e-4_batch_size3_epochs100_log_freq10": "finished",
   "cutmix_alpha1.5_cutmix_prob0.5_learning_rate1e-4_batch_size3_epochs100_log_freq10": "finished",
   "cutmix_alpha1.5_cutmix_prob0.7_learning_rate1e-4_batch_size3_epochs100_log_freq10": "finished",
-  "image_size256_batch_size3_learning_rate2e-4_epochs100_log_freq10": "failed"
+  "image_size256_batch_size3_learning_rate2e-4_epochs100_log_freq10": "failed",
+  "image_size[256, 144]_batch_size3_learning_rate2e-4_epochs100_log_freq10": "failed"
 }

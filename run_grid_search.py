@@ -36,7 +36,11 @@ def run_single_experiment(config_params, project_name, run_name, log_path):
         "train.py"
     ]
     for param, value in config_params.items():
-        cmd.extend([f"--{param}", str(value)])
+        if param == "image_size" and isinstance(value, (list, tuple)) and len(value) == 2:
+            cmd.append(f"--{param}")
+            cmd.extend([str(v) for v in value])
+        else:
+            cmd.extend([f"--{param}", str(value)])
     cmd.extend(["--project_name", project_name])
     cmd.extend(["--run_name", run_name])
     print(f"[RUN] Command: {' '.join(cmd)}")

@@ -5,7 +5,12 @@ project: pepper-segmentation-grid-resize
 method: grid
 parameters:
   image_size:
-    values: [256, 384, 512, 640, 768]
+    values:
+      - [256, 144]
+      - [512, 288]
+      - [640, 360]
+      - [768, 432]
+      - [1280, 720]
   batch_size:
     value: 3
   learning_rate:
