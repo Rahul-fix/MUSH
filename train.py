@@ -18,6 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cutmix_alpha", type=float, default=1.0)
     parser.add_argument("--cutmix_prob", type=float, default=0.5)
+    parser.add_argument("--image_size", type=int, default=512, help="Image size for resizing input images")
     parser.add_argument("--learning_rate", type=float, default=2e-4)
     parser.add_argument("--batch_size", type=int, default=3)
     parser.add_argument("--epochs", type=int, default=100)
@@ -49,20 +50,18 @@ def main():
 
     # Initialize tracking ONLY on main process - SIMPLIFIED
     if accelerator.is_main_process:
-        run_name = args.run_name or f"cutmix_a{args.cutmix_alpha}_p{args.cutmix_prob}_lr{args.learning_rate}_bs{args.batch_size}"
-        
+        run_name = args.run_name or f"resize_{args.image_size}_lr{args.learning_rate}_bs{args.batch_size}"
         accelerator.init_trackers(
             project_name=args.project_name,
             config=vars(args),
             init_kwargs={
                 "wandb": {
                     "name": run_name,
-                    "tags": ["cutmix", "mask2former", "pepper-segmentation"],
-                    "notes": f"Grid search run with CutMix alpha={args.cutmix_alpha}, prob={args.cutmix_prob}"
+                    "tags": ["resize", f"image_size_{args.image_size}", "mask2former", "pepper-segmentation"],
+                    "notes": f"Grid search run with Resize augmentation, image_size={args.image_size}"
                 }
             }
         )
-        
         # Log system info
         accelerator.log({
             "system/gpu_count": torch.cuda.device_count(),
@@ -79,36 +78,42 @@ def main():
     base_train_ds = COCODataset(coco_file_path, root_dir=dataset_root_dir, split='train', transform=None)
     base_val_ds = COCODataset(coco_file_path, root_dir=dataset_root_dir, split='valid', transform=None)
 
-    # Create ImageSegmentationDataset with transforms(normalization, resizing)
+    # Set image size for training and validation from argument
+    IMAGE_SIZE = args.image_size
+    accelerator.print(f"[AUG] Using Resize augmentation with image size: {IMAGE_SIZE}")
+    from torchvision import transforms
+    import numpy as np
+    ADE_MEAN = np.array([123.675, 116.280, 103.530]) / 255.0
+    ADE_STD = np.array([58.395, 57.120, 57.375]) / 255.0
+    train_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=ADE_MEAN, std=ADE_STD),
+    ])
+    test_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=ADE_MEAN, std=ADE_STD),
+    ])
+    target_transform = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE), interpolation=transforms.InterpolationMode.NEAREST)
+    ])
     train_dataset = ImageSegmentationDataset(base_train_ds, transform=train_transform, target_transform=target_transform, label2id=label2id)
-    valid_dataset = ImageSegmentationDataset(base_val_ds, transform=train_transform, target_transform=target_transform, label2id=label2id)
+    valid_dataset = ImageSegmentationDataset(base_val_ds, transform=test_transform, target_transform=target_transform, label2id=label2id)
 
     # Use args directly - simplified config handling
     TRAIN_BATCH_SIZE = args.batch_size
     VALID_BATCH_SIZE = args.batch_size
     accelerator.print(f"Using train batch size: {TRAIN_BATCH_SIZE}")
 
-    # CutMix Setup with args parameters
-    os.makedirs("Output/cutmix", exist_ok=True)
-    CUTMIX = get_cutmix_transform(
-        num_classes=len(id2label_remapped),
-        alpha=args.cutmix_alpha,
-        prob=args.cutmix_prob,
-        save_samples=True
-    )
-    accelerator.print(f"CutMix enabled: alpha={args.cutmix_alpha}, prob={args.cutmix_prob}")
+    # CutMix removed for this branch
+    # No CutMix augmentation. Only Resize augmentation is applied.
 
     # Collate Functions
     def train_collate_fn(batch):
         images, masks, _, orig_masks = zip(*batch)
-        # Stack images and masks into tensors
-        images_tensor = torch.stack(list(images), dim=0)
-        masks_tensor = torch.stack(list(masks), dim=0)
-        # Apply CutMix to images and integer masks
-        cutmix_images, cutmix_masks = CUTMIX(images_tensor, masks_tensor)
-        # Pass CutMix outputs to processor
         processor = get_preprocessor(len(id2label_remapped))
-        proc = processor(list(cutmix_images), segmentation_maps=list(cutmix_masks), return_tensors="pt")
+        proc = processor(list(images), segmentation_maps=list(masks), return_tensors="pt")
         return {
             "pixel_values": proc["pixel_values"],
             "mask_labels": list(proc["mask_labels"]),
@@ -142,7 +147,6 @@ def main():
     if accelerator.is_main_process:
         total_params = sum(p.numel() for p in model.parameters())
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        
         accelerator.log({
             "dataset/num_classes": len(id2label_remapped),
             "dataset/class_names": list(id2label_remapped.values()),
@@ -151,8 +155,7 @@ def main():
             "model/total_parameters": total_params,
             "model/trainable_parameters": trainable_params,
             "model/backbone": "mask2former-swin-base-ade-semantic",
-            "config/cutmix_alpha": args.cutmix_alpha,
-            "config/cutmix_prob": args.cutmix_prob,
+            "config/image_size": args.image_size,
             "config/learning_rate": args.learning_rate,
             "config/batch_size": args.batch_size
         })

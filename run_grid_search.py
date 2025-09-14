@@ -74,8 +74,10 @@ def main():
         config_file = "grid_config.yaml"
     config = load_config(config_file)
     parameters = config.get('parameters', {})
-    # TODO: change project name if needed it needs to be same as wandb config.yml
-    project_name = config.get('project', 'pepper-segmentation-grid')
+    project_name = config.get('project')
+    if not project_name:
+        print("ERROR: 'project' field missing in config file. Please add 'project: <project_name>' to your config YAML.")
+        sys.exit(1)
     combinations = generate_combinations(parameters)
     log_path = "experiment_log.json"
     try:

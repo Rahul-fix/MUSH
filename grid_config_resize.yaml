@@ -1,0 +1,16 @@
+# Grid search configuration for image resizing experiments
+# This YAML file defines different image sizes to try for training
+
+project: pepper-segmentation-grid-resize
+method: grid
+parameters:
+  image_size:
+    values: [256, 384, 512, 640, 768]
+  batch_size:
+    value: 3
+  learning_rate:
+    value: 2e-4
+  epochs:
+    value: 100
+  log_freq:
+    value: 10
