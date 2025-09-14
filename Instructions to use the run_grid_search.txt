@@ -10,3 +10,6 @@ Instructions to use the run_grid_search.sh
 5. Check online on wandb website for the project and manage the runs of the experiment.
 6. All the outputs will be save in Output/ folder.
 7. Check for the saved models in with unique run_name_id at end of their name in Output/ folder. Check for the logs on the cluster or wandb online to find that id.
+
+Note:
+- If you are using accelerate, check your accelerate_config.yaml and the launch command. Make sure the number of processes matches the number of unique GPUs.
