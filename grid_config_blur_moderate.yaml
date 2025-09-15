@@ -1,0 +1,25 @@
+# Grid search configuration for Gaussian Blur (Moderate Motion)
+project: pepper-segmentation-grid-blur-moderate
+method: grid
+parameters:
+  image_size:
+    values:
+      - [640, 360]
+  batch_size:
+    value: 3
+  learning_rate:
+    value: 2e-4
+  epochs:
+    value: 100
+  log_freq:
+    value: 10
+  blur_prob:
+    values:
+      - 0.5
+  blur_kernel:
+    values:
+      - 5
+  blur_sigma:
+    values:
+      - 0.5
+      - 1.5
