@@ -18,9 +18,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cutmix_alpha", type=float, default=1.0)
     parser.add_argument("--cutmix_prob", type=float, default=0.5)
-    parser.add_argument("--blur_prob", type=float, default=0.5, help="Probability of applying Gaussian blur")
-    parser.add_argument("--blur_kernel", type=int, default=5, help="Kernel size for Gaussian blur")
-    parser.add_argument("--blur_sigma", type=float, default=None, help="Standard deviation (sigma) for Gaussian blur. If None, uses default from torchvision.")
+    parser.add_argument("--colorjitter_prob", type=float, default=0.5, help="Probability of applying ColorJitter")
+    parser.add_argument("--brightness", type=float, nargs=2, default=[0.9, 1.1], help="Brightness range [min, max]")
+    parser.add_argument("--contrast", type=float, nargs=2, default=[0.9, 1.1], help="Contrast range [min, max]")
+    parser.add_argument("--saturation", type=float, nargs=2, default=[0.9, 1.1], help="Saturation range [min, max]")
+    parser.add_argument("--hue", type=float, nargs=2, default=[-0.05, 0.05], help="Hue range [min, max]")
     parser.add_argument("--image_size", type=int, nargs=2, default=[512, 288], help="Image size as [width, height] for resizing input images")
     parser.add_argument("--learning_rate", type=float, default=2e-4)
     parser.add_argument("--batch_size", type=int, default=3)
@@ -53,7 +55,7 @@ def main():
 
     # Initialize tracking ONLY on main process - SIMPLIFIED
     if accelerator.is_main_process:
-        run_name = args.run_name or f"resize_blur_{args.image_size}_lr{args.learning_rate}_bs{args.batch_size}"
+        run_name = args.run_name or f"resize_colorjitter_{args.image_size}_lr{args.learning_rate}_bs{args.batch_size}"
         accelerator.init_trackers(
             project_name=args.project_name,
             config=vars(args),
@@ -61,15 +63,16 @@ def main():
                 "wandb": {
                     "name": run_name,
                     "tags": [
-                        "gaussian_blur",
-                        f"blur_prob_{args.blur_prob}",
-                        f"blur_kernel_{args.blur_kernel}",
-                        f"blur_std_{args.blur_sigma}",
+                        "color_jitter",
+                        f"brightness_{args.brightness}",
+                        f"contrast_{args.contrast}",
+                        f"saturation_{args.saturation}",
+                        f"hue_{args.hue}",
                         f"image_size_{args.image_size}",
                         "mask2former",
                         "pepper-segmentation"
                     ],
-                    "notes": f"Grid search run with Resize + GaussianBlur augmentation, image_size={args.image_size}, blur_prob={args.blur_prob}, blur_kernel={args.blur_kernel}, blur_std={args.blur_sigma}"
+                    "notes": f"Grid search run with Resize + ColorJitter augmentation, image_size={args.image_size}, brightness={args.brightness}, contrast={args.contrast}, saturation={args.saturation}, hue={args.hue}"
                 }
             }
         )
@@ -91,26 +94,36 @@ def main():
 
     # Set image size for training and validation from argument
     IMAGE_SIZE = tuple(args.image_size)  # (width, height)
-    accelerator.print(f"[AUG] Using Resize + GaussianBlur augmentation with image size: {IMAGE_SIZE}")
+    accelerator.print(f"[AUG] Using Resize + ColorJitter augmentation with image size: {IMAGE_SIZE}")
     from torchvision import transforms
     import numpy as np
     ADE_MEAN = np.array([123.675, 116.280, 103.530]) / 255.0
     ADE_STD = np.array([58.395, 57.120, 57.375]) / 255.0
 
-    class RandomGaussianBlur(object):
-        def __init__(self, prob, kernel_size, sigma=None):
+    class RandomColorJitter(object):
+        def __init__(self, prob, brightness, contrast, saturation, hue):
             self.prob = prob
-            self.kernel_size = kernel_size
-            self.sigma = sigma
+            self.colorjitter = transforms.ColorJitter(
+                brightness=brightness,
+                contrast=contrast,
+                saturation=saturation,
+                hue=hue
+            )
         def __call__(self, img):
             import random
             if random.random() < self.prob:
-                return transforms.functional.gaussian_blur(img, kernel_size=self.kernel_size, sigma=self.sigma)
+                return self.colorjitter(img)
             return img
 
     train_transform = transforms.Compose([
         transforms.Resize(IMAGE_SIZE),
-        RandomGaussianBlur(args.blur_prob, args.blur_kernel, args.blur_sigma),
+        RandomColorJitter(
+            prob=args.colorjitter_prob,
+            brightness=args.brightness,
+            contrast=args.contrast,
+            saturation=args.saturation,
+            hue=args.hue
+        ),
         transforms.ToTensor(),
         transforms.Normalize(mean=ADE_MEAN, std=ADE_STD),
     ])
