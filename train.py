@@ -19,10 +19,12 @@ def parse_args():
     parser.add_argument("--cutmix_alpha", type=float, default=1.0)
     parser.add_argument("--cutmix_prob", type=float, default=0.5)
     parser.add_argument("--colorjitter_prob", type=float, default=0.5, help="Probability of applying ColorJitter")
-    parser.add_argument("--brightness", type=float, nargs=2, default=[0.9, 1.1], help="Brightness range [min, max]")
-    parser.add_argument("--contrast", type=float, nargs=2, default=[0.9, 1.1], help="Contrast range [min, max]")
-    parser.add_argument("--saturation", type=float, nargs=2, default=[0.9, 1.1], help="Saturation range [min, max]")
-    parser.add_argument("--hue", type=float, nargs=2, default=[-0.05, 0.05], help="Hue range [min, max]")
+    # Change these to accept strings and parse them manually
+    parser.add_argument("--brightness", type=str, default="0.9 1.1", help="Brightness range as 'min max'")
+    parser.add_argument("--contrast", type=str, default="0.9 1.1", help="Contrast range as 'min max'")
+    parser.add_argument("--saturation", type=str, default="0.9 1.1", help="Saturation range as 'min max'")
+    parser.add_argument("--hue", type=str, default="-0.05 0.05", help="Hue range as 'min max'")
+    
     parser.add_argument("--image_size", type=int, nargs=2, default=[512, 288], help="Image size as [width, height] for resizing input images")
     parser.add_argument("--learning_rate", type=float, default=2e-4)
     parser.add_argument("--batch_size", type=int, default=3)
@@ -31,7 +33,16 @@ def parse_args():
     parser.add_argument("--run_name", type=str, default=None)
     parser.add_argument("--log_freq", type=int, default=10, help="Log every N steps")
     parser.add_argument("--wandb_api_key", type=str, default=None, help="Wandb API key")
-    return parser.parse_args()
+
+    args = parser.parse_args()
+    
+    # Parse the string values back to lists of floats
+    args.brightness = [float(x) for x in args.brightness.split()]
+    args.contrast = [float(x) for x in args.contrast.split()]
+    args.saturation = [float(x) for x in args.saturation.split()]
+    args.hue = [float(x) for x in args.hue.split()]
+
+    return args
 
 def main():
     args = parse_args()

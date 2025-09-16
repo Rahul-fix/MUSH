@@ -24,5 +24,8 @@
   "image_size[1280, 720]_batch_size1_learning_rate2e-4_epochs100_log_freq10": "finished",
   "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_colorjitter_prob0.5_brightness[0.9, 1.1]_contrast[0.9, 1.1]_saturation[0.9, 1.1]_hue[-0.05, 0.05]": "failed",
   "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_colorjitter_prob0.5_brightness[0.7, 1.3]_contrast[0.7, 1.3]_saturation[0.7, 1.3]_hue[-0.05, 0.05]": "failed",
-  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_colorjitter_prob0.5_brightness[0.65, 1.35]_contrast[0.65, 1.35]_saturation[0.65, 1.35]_hue[-0.05, 0.05]": "failed"
+  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_colorjitter_prob0.5_brightness[0.65, 1.35]_contrast[0.65, 1.35]_saturation[0.65, 1.35]_hue[-0.05, 0.05]": "failed",
+  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_colorjitter_prob0.5_brightness0.9 1.1_contrast0.9 1.1_saturation0.9 1.1_hue-0.05 0.05": "finished",
+  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_colorjitter_prob0.5_brightness0.65 1.35_contrast0.65 1.35_saturation0.65 1.35_hue-0.05 0.05": "finished",
+  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_colorjitter_prob0.5_brightness0.7 1.3_contrast0.7 1.3_saturation0.7 1.3_hue-0.05 0.05": "failed"
 }

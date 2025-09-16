@@ -18,13 +18,13 @@ parameters:
     - 0.5
   brightness:
     values:
-    - [0.7, 1.3]
+    - "0.7 1.3"
   contrast:
     values:
-    - [0.7, 1.3]
+    - "0.7 1.3"
   saturation:
     values:
-    - [0.7, 1.3]
+    - "0.7 1.3"
   hue:
     values:
-    - [-0.05, 0.05]
+    - "-0.05 0.05"
