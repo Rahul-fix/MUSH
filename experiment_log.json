@@ -26,5 +26,6 @@
   "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_blur_prob0.5_blur_kernel3_blur_sigma0.5": "finished",
   "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_blur_prob0.5_blur_kernel5_blur_sigma0.5": "finished",
   "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_blur_prob0.5_blur_kernel15_blur_sigma1.5": "finished",
-  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_blur_prob0.5_blur_kernel15_blur_sigma2.0": "finished"
+  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_blur_prob0.5_blur_kernel15_blur_sigma2.0": "finished",
+  "image_size[640, 360]_batch_size3_learning_rate2e-4_epochs100_log_freq10_blur_prob0.5_blur_kernel5_blur_sigma1.5": "finished"
 }
